@@ -1,0 +1,6 @@
+﻿---
+BasedOnStyle: Microsoft
+AlignAfterOpenBracket: AlwaysBreak
+SortUsingDeclarations: 'false'
+SortIncludes: 'false'
+...
