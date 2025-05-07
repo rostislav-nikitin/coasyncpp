@@ -1,22 +1,16 @@
 #ifndef __COASYNCPP_ASYNC_HPP__
 #define __COASYNCPP_ASYNC_HPP__
 
+#include "common.hpp"
+#include "scheduler.hpp"
+
 #include <coroutine>
 #include <iterator>
+#include <vector>
 
 /// @brief The namespace that represents classes/functions for async tasks manipulation.
 namespace coasyncpp
 {
-template <typename T> class async;
-/// @brief The interface that represents asyc task interface.
-class async_interface
-{
-public:
-	virtual void execute() = 0;
-	virtual void suspend() = 0;
-	virtual void awake() = 0;
-	virtual bool done() = 0;
-};
 
 /// @brief The class that represents out of values sentinel.
 struct async_sentinel
@@ -232,6 +226,138 @@ template <typename T> class async : public async_interface
   private:
     std::coroutine_handle<promise_type> selfHandle_{};
 };
+
+/// @brief The class that represents async task.
+/// @tparam T The type of the async task value.
+template <> 
+class async<void> : public async_interface
+{
+  public:
+    class resume_awaiter;
+
+    // Promise type of the Self Result
+    struct promise_type
+    {
+        std::suspend_always initial_suspend()
+        {
+            return {};
+        }
+        resume_awaiter final_suspend() noexcept
+        {
+            isDone_ = true;
+            return {isAwaitReady_};
+        }
+        std::suspend_always return_void()
+        {
+            return {};
+        }
+        void unhandled_exception()
+        {
+        }
+        auto get_return_object()
+        {
+            return async<void>(std::coroutine_handle<promise_type>::from_promise(*this));
+        }
+
+        std::coroutine_handle<> callerHandle_;
+        bool isAwaitReady_{true};
+        bool isDone_{};
+    };
+
+    // Resume Awaiter
+    class resume_awaiter
+    {
+      public:
+        resume_awaiter(bool isAwaitReady) : isAwaitReady_{isAwaitReady}
+        {
+        }
+        bool await_ready() noexcept
+        {
+            return isAwaitReady_;
+        }
+        std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> selfHandle) noexcept
+        {
+            return selfHandle.promise().callerHandle_;
+        }
+        void await_resume() noexcept
+        {
+        }
+
+      private:
+        bool isAwaitReady_{};
+    };
+
+    // Awaiter members
+    bool await_ready()
+    {
+        return false;
+    }
+    void await_suspend(std::coroutine_handle<> callerHandle)
+    {
+        selfHandle_.promise().callerHandle_ = callerHandle;
+        selfHandle_.promise().isAwaitReady_ = false;
+        selfHandle_.resume();
+    }
+    void await_resume()
+    {
+    }
+
+    // Members
+    async(std::coroutine_handle<promise_type> selfHandle) : selfHandle_{selfHandle}
+    {
+    }
+
+    void execute() override
+    {
+        if (!selfHandle_.done())
+            selfHandle_.resume();
+    }
+    void awake() override
+    {
+    }
+    void suspend() override
+    {
+    }
+    bool done() override
+    {
+        return selfHandle_.promise().isDone_;
+    }
+
+  protected:
+  private:
+    std::coroutine_handle<promise_type> selfHandle_{};
+};
+
+template<typename T>
+async<void> whenAll(std::vector<async<T>> tasks)
+{
+	for(auto &task : tasks)
+		Scheduler::getInstance()->schedule(&task);
+
+	for(auto task : tasks)
+	{
+		while(!task.done())
+            std::this_thread::yield();
+	}
+	co_return;
+}
+
+template<typename T>
+async<void> whenAny(std::vector<async<T>> tasks)
+{
+	for(auto &task : tasks)
+		Scheduler::getInstance()->schedule(&task);
+
+    while(true)
+    {
+	    for(auto task : tasks)
+	    {
+    		if(task.done())
+                co_return;
+            std::this_thread::yield();
+	    }
+    }
+}
 } // namespace coasyncpp
 
 #endif

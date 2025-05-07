@@ -14,3 +14,8 @@ add_executable(subcalls
     examples/subcalls.cpp
 )
 target_include_directories(subcalls PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
+add_executable(multitasking
+    examples/multitasking.cpp
+)
+target_include_directories(multitasking PRIVATE "${CMAKE_SOURCE_DIR}/include")
