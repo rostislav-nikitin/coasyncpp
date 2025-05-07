@@ -49,16 +49,6 @@ class Scheduler
         if (blockThread)
             ts->cv_.wait(lock, [task]() { return task->done(); });
     }
-
-    /*/
-        void scheduleNoBlocking(async_interface *task)
-        {
-            auto ts = std::make_shared<task_storage>(task);
-
-            std::lock_guard tasksLock{tasksMutex_};
-            tasks_.push(ts);
-        }
-    */
     void resumeFromCallback(task_storage *taskStorage)
     {
         std::lock_guard lock{taskStorage->mutex_};
@@ -113,6 +103,7 @@ class Scheduler
 
 Scheduler *Scheduler::instance_{};
 
+// Tasks with callback support
 template <typename T> struct awake_handle
 {
     std::mutex mt_{};
@@ -125,7 +116,6 @@ template <typename T> struct awake_handle
         return value_;
     }
 };
-
 template <> struct awake_handle<void>
 {
     std::mutex mt_{};
