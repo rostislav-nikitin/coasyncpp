@@ -10,9 +10,9 @@
 
 namespace coasyncpp
 {
-struct TaskStorage
+struct task_storage
 {
-    TaskStorage(async_interface *task) : task_{task}
+    task_storage(async_interface *task) : task_{task}
     {
     }
     async_interface *task_;
@@ -39,26 +39,27 @@ class Scheduler
     void schedule(async_interface *task, bool blockThread = false)
     {
         // TODO: replace tasks_ with lock free one.
-        auto ts = std::make_shared<TaskStorage>(task);
+        auto ts = std::make_shared<task_storage>(task);
         std::unique_lock lock(ts->mutex_);
         {
             std::lock_guard tasksLock{tasksMutex_};
             tasks_.push(ts);
         }
         // Suspend thread
-        if(blockThread)
+        if (blockThread)
             ts->cv_.wait(lock, [task]() { return task->done(); });
     }
-/*/
-    void scheduleNoBlocking(async_interface *task)
-    {
-        auto ts = std::make_shared<TaskStorage>(task);
 
-        std::lock_guard tasksLock{tasksMutex_};
-        tasks_.push(ts);
-    }
-*/
-    void resumeFromCallback(TaskStorage *taskStorage)
+    /*/
+        void scheduleNoBlocking(async_interface *task)
+        {
+            auto ts = std::make_shared<task_storage>(task);
+
+            std::lock_guard tasksLock{tasksMutex_};
+            tasks_.push(ts);
+        }
+    */
+    void resumeFromCallback(task_storage *taskStorage)
     {
         std::lock_guard lock{taskStorage->mutex_};
         taskStorage->cv_.notify_one();
@@ -73,7 +74,7 @@ class Scheduler
         workerThread_ = std::thread(&Scheduler::worker, this);
     }
 
-    std::queue<std::shared_ptr<TaskStorage>> tasks_{};
+    std::queue<std::shared_ptr<task_storage>> tasks_{};
     bool isRunning_{};
     std::thread workerThread_{};
     std::mutex tasksMutex_{};
@@ -111,6 +112,64 @@ class Scheduler
 };
 
 Scheduler *Scheduler::instance_{};
+
+template <typename T> struct awake_handle
+{
+    std::mutex mt_{};
+    std::condition_variable cv_{};
+    bool completed_{};
+    T value_{};
+
+    T getValue() const
+    {
+        return value_;
+    }
+};
+
+template <> struct awake_handle<void>
+{
+    std::mutex mt_{};
+    std::condition_variable cv_{};
+    bool completed_{};
+};
+
+// Create task handle
+template <typename T> awake_handle<T> *createTaskHandle()
+{
+    return new awake_handle<T>{};
+}
+template <> awake_handle<void> *createTaskHandle()
+{
+    return new awake_handle<void>{};
+}
+
+// Suspend from task
+template <typename T> void suspend(awake_handle<T> *handle)
+{
+    std::unique_lock lock{handle->mt_};
+    handle->cv_.wait(lock, [handle]() { return handle->completed_; });
+}
+template <> void suspend(awake_handle<void> *handle)
+{
+    std::unique_lock lock{handle->mt_};
+    handle->cv_.wait(lock, [handle]() { return handle->completed_; });
+}
+
+
+// Resume from callback
+template <typename T> void resume(T value, awake_handle<T> *handle)
+{
+    handle->completed_ = true;
+    handle->value_ = value;
+    std::lock_guard lock(handle->mt_);
+    handle->cv_.notify_one();
+}
+void resume(awake_handle<void> *handle)
+{
+    handle->completed_ = true;
+    std::lock_guard lock(handle->mt_);
+    handle->cv_.notify_one();
+}
 
 } // namespace coasyncpp
 
