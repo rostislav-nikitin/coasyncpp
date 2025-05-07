@@ -12,7 +12,7 @@ using namespace coasyncpp;
 
 namespace stdv = std::ranges::views;
 
-/// @brief The coroutine that generates Fibonachi numbers
+/// @brief The coroutine that generates Fibonachi numbers.
 /// @param startIndex The parameter that represents index of the first Fibonachi number to generate. Numbering stating from the 1.
 /// @param count The parameter that represents the count of numbers to generate. Should be greater then 0.
 /// @return Returns the next Fibonachi number.
