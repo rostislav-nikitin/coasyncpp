@@ -145,7 +145,6 @@ template <> void suspend(awake_handle<void> *handle)
     handle->cv_.wait(lock, [handle]() { return handle->completed_; });
 }
 
-
 // Resume from callback
 template <typename T> void resume(T value, awake_handle<T> *handle)
 {
@@ -160,7 +159,6 @@ void resume(awake_handle<void> *handle)
     std::lock_guard lock(handle->mt_);
     handle->cv_.notify_one();
 }
-
 } // namespace coasyncpp
 
 #endif

@@ -21,10 +21,10 @@ auto middleFunc(int x) -> async<int>
 {
     auto y = co_await innerFunc();
 
-    if(!y)
+    if (!y)
         co_return y;
 
-    co_return x * *y;
+    co_return x **y;
 }
 
 /// @brief The mose outer coroutine.
@@ -35,31 +35,29 @@ auto outerFunc(int x) -> async<int>
     auto y = co_await middleFunc(x);
     auto z = co_await middleFunc(x);
 
-    if(!y)
+    if (!y)
         co_return y;
-    if(!z)
+    if (!z)
         co_return z;
 
     co_return x + *y + *z;
 }
 
-auto main(int argc, char* argv[]) -> int
+auto main(int argc, char *argv[]) -> int
 {
     auto task{outerFunc(5)};
     task.execute();
     task.result()
-        .and_then([](auto x) -> std::expected<int, async_error> 
-        { 
-            std::cout << x << std::endl; 
-            return x; 
+        .and_then([](auto x) -> std::expected<int, async_error> {
+            std::cout << x << std::endl;
+            return x;
         })
-        .or_else([](auto ex) -> std::expected<int, async_error>
-        {
+        .or_else([](auto ex) -> std::expected<int, async_error> {
             std::cout << ex.what() << std::endl;
             return std::unexpected(ex);
         });
 
-    assert(task && (*task ==  (5 * 10 + 5 * 10 + 5)));
+    assert(task && (*task == (5 * 10 + 5 * 10 + 5)));
 
     return EXIT_SUCCESS;
 }

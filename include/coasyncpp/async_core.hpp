@@ -102,7 +102,6 @@ template <typename T> bool operator!=(async_sentinel const &s, async_iterator<T>
     return !(s == i);
 }
 
-
 /// @brief The class that represents async task.
 /// @tparam T The type of the async task value.
 template <typename T> class async : public async_interface
@@ -201,8 +200,7 @@ template <typename T> class async : public async_interface
 
 /// @brief The class that represents async task.
 /// @tparam T The type of the async task value.
-template <> 
-class async<void> : public async_interface
+template <> class async<void> : public async_interface
 {
   public:
     // Promise type of the Self Result
@@ -269,34 +267,32 @@ class async<void> : public async_interface
     std::coroutine_handle<promise_type> selfHandle_{};
 };
 
-template<typename T>
-async<void> whenAll(std::vector<async<T>> tasks)
+template <typename T> async<void> whenAll(std::vector<async<T>> tasks)
 {
-	for(auto &task : tasks)
-		Scheduler::getInstance()->schedule(&task);
+    for (auto &task : tasks)
+        Scheduler::getInstance()->schedule(&task);
 
-	for(auto task : tasks)
-	{
-		while(!task.done())
+    for (auto task : tasks)
+    {
+        while (!task.done())
             std::this_thread::yield();
-	}
-	co_return;
+    }
+    co_return;
 }
 
-template<typename T>
-async<void> whenAny(std::vector<async<T>> tasks)
+template <typename T> async<void> whenAny(std::vector<async<T>> tasks)
 {
-	for(auto &task : tasks)
-		Scheduler::getInstance()->schedule(&task);
+    for (auto &task : tasks)
+        Scheduler::getInstance()->schedule(&task);
 
-    while(true)
+    while (true)
     {
-	    for(auto task : tasks)
-	    {
-    		if(task.done())
+        for (auto task : tasks)
+        {
+            if (task.done())
                 co_return;
             std::this_thread::yield();
-	    }
+        }
     }
 }
 } // namespace core

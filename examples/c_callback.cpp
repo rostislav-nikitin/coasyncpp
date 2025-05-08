@@ -30,7 +30,7 @@ void threadingPoolWorker()
             auto [id, callback, userData] = callbacksQueue.front();
             callbacksQueue.pop();
 
-            if(id == 10)
+            if (id == 10)
                 callback(50, userData);
             else
                 callback(75, userData);
@@ -57,7 +57,6 @@ void asyncFunc(int id, callback_t callback, void *userData)
 {
     callbacksQueue.push(std::make_tuple(id, callback, userData));
 }
-
 
 /// @brief  The function that represents a user callback.
 /// @param value The parameter that represents value recived from the third party io library.
@@ -90,7 +89,6 @@ auto calculationTask(int initial) -> async<int>
 
     co_return initial + x + y;
 }
-
 
 auto main(int argc, char *argv[]) -> int
 {

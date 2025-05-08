@@ -35,13 +35,12 @@ auto whenAll() -> void
 
     auto task{whenAll(std::vector{taskOdds, taskEvens})};
     task.execute();
-    task
-        .result()
-        .or_else([](auto ex) -> std::expected<void, async_error>
-            {
-                std::cout << "Error happends." << std::endl;
-                return std::unexpected<async_error>(ex.what());
-            });
+    task.result()
+        .or_else([](auto ex) -> std::expected<void, async_error> 
+        {
+            std::cout << "Error happends." << std::endl;
+            return std::unexpected<async_error>(ex.what());
+        });
 }
 
 /// @brief The coroutine that finishes only when at least ANYONE tasks done.
@@ -52,13 +51,12 @@ auto whenAny() -> void
 
     auto task{whenAny(std::vector{taskOdds, taskEvens})};
     task.execute();
-    task
-        .result()
-        .or_else([](auto ex) -> std::expected<void, async_error>
-            {
-                std::cout << "Error happends." << std::endl;
-                return std::unexpected<async_error>(ex.what());
-            });
+    task.result()
+        .or_else([](auto ex) -> std::expected<void, async_error> 
+        {
+            std::cout << "Error happends." << std::endl;
+            return std::unexpected<async_error>(ex.what());
+        });
 }
 
 auto main(int argc, char *argv[]) -> int
@@ -67,6 +65,6 @@ auto main(int argc, char *argv[]) -> int
     whenAll();
     std::cout << "====================WHEN_ANY====================" << std::endl;
     whenAny();
- 
+
     return EXIT_SUCCESS;
 }

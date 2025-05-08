@@ -20,10 +20,9 @@ struct async_sentinel
 
 /// @brief The class that represents a resume awaiter.
 /// @tparam T The template parameter that represents a concrete promise_type.
-template<typename T>
-class resume_awaiter
+template <typename T> class resume_awaiter
 {
-    public:
+  public:
     resume_awaiter(bool isAwaitReady) : isAwaitReady_{isAwaitReady}
     {
     }
@@ -39,7 +38,7 @@ class resume_awaiter
     {
     }
 
-    private:
+  private:
     bool isAwaitReady_{};
 };
 } // namespace coasyncpp

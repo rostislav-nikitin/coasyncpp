@@ -9,7 +9,7 @@ using namespace coasyncpp::expected;
 
 auto co(bool isThrow = false) -> async<int>
 {
-    if(!isThrow)
+    if (!isThrow)
         co_return 10;
     else
         throw std::runtime_error("Some Runtime Error.");
@@ -18,21 +18,16 @@ auto co(bool isThrow = false) -> async<int>
 auto process(auto task)
 {
     task.result()
-        .transform_error([](auto ex) -> std::runtime_error
-            {
-                return std::runtime_error(ex.what());
-            })
+        .transform_error([](auto ex) -> std::runtime_error { return std::runtime_error(ex.what()); })
         .transform([](auto x) { return x * x; })
-        .and_then([](auto value) -> std::expected<int, std::runtime_error>
-            {
-                std::cout << value << std::endl; 
-                return value; 
-            })
-        .or_else([](auto ex) -> std::expected<int, std::runtime_error>
-            {
-                std::cout << ex.what() << std::endl;
-                return std::unexpected<std::runtime_error>(ex.what()); 
-            });
+        .and_then([](auto value) -> std::expected<int, std::runtime_error> {
+            std::cout << value << std::endl;
+            return value;
+        })
+        .or_else([](auto ex) -> std::expected<int, std::runtime_error> {
+            std::cout << ex.what() << std::endl;
+            return std::unexpected<std::runtime_error>(ex.what());
+        });
 }
 
 auto main(int argc, char *argv[]) -> int
@@ -47,6 +42,5 @@ auto main(int argc, char *argv[]) -> int
     throwingTask.execute();
     process(throwingTask);
 
-    
     return EXIT_SUCCESS;
 }

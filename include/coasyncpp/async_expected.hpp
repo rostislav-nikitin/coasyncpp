@@ -22,11 +22,10 @@ using namespace coasyncpp;
 
 template <typename T> class async;
 
-/// @brief The class that represents an aync error.    
+/// @brief The class that represents an aync error.
 class async_error : public std::runtime_error
 {
-public:
-
+  public:
     async_error(char const *msg) : async_error(0, msg)
     {
     }
@@ -41,15 +40,18 @@ public:
         return msg_;
     }
 
-    int code() { return code_; }
-private:
+    int code()
+    {
+        return code_;
+    }
+
+  private:
     int code_{};
     char msg_[256];
 };
 
 /// @bref The type that represents value type.
-template<typename T>
-using expected_value_type = std::expected<T, async_error>;
+template <typename T> using expected_value_type = std::expected<T, async_error>;
 
 /// @brief The class that represents iterator for async task.
 /// @tparam T The type of the iterator value.
@@ -168,17 +170,17 @@ template <typename T> class async : public async_interface
         void unhandled_exception()
         {
             std::exception_ptr ePtr{std::current_exception()};
-            if(ePtr)
+            if (ePtr)
             {
                 try
                 {
                     std::rethrow_exception(ePtr);
                 }
-                catch(const std::exception& e)
+                catch (const std::exception &e)
                 {
                     value_ = std::unexpected(async_error(e.what()));
                 }
-                catch(...)
+                catch (...)
                 {
                     value_ = std::unexpected(async_error("Unknown error."));
                 }
@@ -255,8 +257,7 @@ template <typename T> class async : public async_interface
 
 /// @brief The class that represents async task.
 /// @tparam T The type of the async task value.
-template <> 
-class async<void> : public async_interface
+template <> class async<void> : public async_interface
 {
   public:
     // Promise type of the Self Result
@@ -278,17 +279,17 @@ class async<void> : public async_interface
         void unhandled_exception()
         {
             std::exception_ptr ePtr{std::current_exception()};
-            if(ePtr)
+            if (ePtr)
             {
                 try
                 {
                     std::rethrow_exception(ePtr);
                 }
-                catch(const std::exception& e)
+                catch (const std::exception &e)
                 {
                     value_ = std::unexpected(async_error(e.what()));
                 }
-                catch(...)
+                catch (...)
                 {
                     value_ = std::unexpected(async_error("Unknown error."));
                 }
@@ -352,35 +353,33 @@ class async<void> : public async_interface
     std::coroutine_handle<promise_type> selfHandle_{};
 };
 
-template<typename T>
-async<void> whenAll(std::vector<async<T>> tasks)
+template <typename T> async<void> whenAll(std::vector<async<T>> tasks)
 {
-	for(auto &task : tasks)
-		Scheduler::getInstance()->schedule(&task);
+    for (auto &task : tasks)
+        Scheduler::getInstance()->schedule(&task);
 
-	for(auto &task : tasks)
-	{
-		while(!task.done())
+    for (auto &task : tasks)
+    {
+        while (!task.done())
             std::this_thread::yield();
-	}
+    }
 
-	co_return;
+    co_return;
 }
 
-template<typename T>
-async<void> whenAny(std::vector<async<T>> tasks)
+template <typename T> async<void> whenAny(std::vector<async<T>> tasks)
 {
-	for(auto &task : tasks)
-		Scheduler::getInstance()->schedule(&task);
+    for (auto &task : tasks)
+        Scheduler::getInstance()->schedule(&task);
 
-    while(true)
+    while (true)
     {
-	    for(auto task : tasks)
-	    {
-    		if(task.done())
+        for (auto task : tasks)
+        {
+            if (task.done())
                 co_return;
             std::this_thread::yield();
-	    }
+        }
     }
 }
 } // namespace expected
