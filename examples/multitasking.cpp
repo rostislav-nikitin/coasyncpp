@@ -3,8 +3,10 @@
 #include <cassert>
 #include <iostream>
 #include <ranges>
+#include <expected>
 
-using namespace coasyncpp;
+using namespace coasyncpp::expected;
+
 namespace stdv = std::ranges::views;
 
 /// @brief The coroutine that generates odd or even numbers sequence.
@@ -33,6 +35,13 @@ auto whenAll() -> void
 
     auto task{whenAll(std::vector{taskOdds, taskEvens})};
     task.execute();
+    task
+        .result()
+        .or_else([](auto ex) -> std::expected<void, async_error>
+            {
+                std::cout << "Error happends." << std::endl;
+                return std::unexpected<async_error>(ex.what());
+            });
 }
 
 /// @brief The coroutine that finishes only when at least ANYONE tasks done.
@@ -43,6 +52,13 @@ auto whenAny() -> void
 
     auto task{whenAny(std::vector{taskOdds, taskEvens})};
     task.execute();
+    task
+        .result()
+        .or_else([](auto ex) -> std::expected<void, async_error>
+            {
+                std::cout << "Error happends." << std::endl;
+                return std::unexpected<async_error>(ex.what());
+            });
 }
 
 auto main(int argc, char *argv[]) -> int

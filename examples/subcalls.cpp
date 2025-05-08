@@ -3,8 +3,9 @@
 #include <cassert>
 #include <iostream>
 #include <coroutine>
+#include <expected>
 
-using namespace coasyncpp;
+using namespace coasyncpp::expected;
 
 /// @brief The parameterless inner coroutine.
 /// @return Returns const value.
@@ -18,9 +19,12 @@ auto innerFunc() -> async<int>
 /// @return Returns result of the multiplication of the innerFunc result by x.
 auto middleFunc(int x) -> async<int>
 {
-    int y = co_await innerFunc();
+    auto y = co_await innerFunc();
 
-    co_return x * y;
+    if(!y)
+        co_return y;
+
+    co_return x * *y;
 }
 
 /// @brief The mose outer coroutine.
@@ -28,19 +32,34 @@ auto middleFunc(int x) -> async<int>
 /// @return Returns the sum of middleFunc result, another middleFunc result and x.
 auto outerFunc(int x) -> async<int>
 {
-    int y = co_await middleFunc(x);
-    int z = co_await middleFunc(x);
+    auto y = co_await middleFunc(x);
+    auto z = co_await middleFunc(x);
 
-    co_return x + y + z;
+    if(!y)
+        co_return y;
+    if(!z)
+        co_return z;
+
+    co_return x + *y + *z;
 }
 
 auto main(int argc, char* argv[]) -> int
 {
     auto task{outerFunc(5)};
     task.execute();
+    task.result()
+        .and_then([](auto x) -> std::expected<int, async_error> 
+        { 
+            std::cout << x << std::endl; 
+            return x; 
+        })
+        .or_else([](auto ex) -> std::expected<int, async_error>
+        {
+            std::cout << ex.what() << std::endl;
+            return std::unexpected(ex);
+        });
 
-    assert(task.value() ==  (5 * 10 + 5 * 10 + 5));
-    std::cout << "Result value is: " << task.value() << std::endl;
+    assert(task && (*task ==  (5 * 10 + 5 * 10 + 5)));
 
     return EXIT_SUCCESS;
 }

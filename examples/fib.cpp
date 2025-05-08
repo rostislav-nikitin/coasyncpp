@@ -7,8 +7,9 @@
 #include <ranges>
 #include <utility>
 #include <iomanip>
+#include <expected>
 
-using namespace coasyncpp;
+using namespace coasyncpp::core;
 
 namespace stdv = std::ranges::views;
 
@@ -44,8 +45,8 @@ int main(int argc, char* argv[])
     std::cout << "FIB" << std::endl;
 
     for(auto [index, n] : fib(1, 30) 
-            | stdv::filter([](uint64_t x){ return 1 == x % 2; })
-            | stdv::transform([](uint64_t x){ return double(x / 2.0); })
+            | stdv::filter([](auto x){ return 1 == x % 2; })
+            | stdv::transform([](auto x){ return double(x / 2.0); })
             | stdv::enumerate)
         std::cout 
             << std::setw(3) << (index + 1) 

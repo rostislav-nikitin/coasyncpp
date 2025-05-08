@@ -9,7 +9,7 @@
 #include <queue>
 #include <chrono>
 
-using namespace coasyncpp;
+using namespace coasyncpp::core;
 
 /// The type that represents callback type accepted by the third party io library.
 using callback_t = void (*)(int value, void *user_data);
@@ -103,8 +103,8 @@ auto main(int argc, char *argv[]) -> int
     task.execute();
 
     // Output calculation result.
-    assert((10 + 50 + 75 == task.value()));
-    std::cout << task.value() << std::endl;
+    assert((10 + 50 + 75 == task.result()));
+    std::cout << task.result() << std::endl;
 
     // Stop third io library thread pool.
     stopThreadPool();

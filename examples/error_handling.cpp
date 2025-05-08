@@ -4,38 +4,34 @@
 #include <exception>
 #include <stdexcept>
 #include <expected>
-#include <type_traits>
 
-using namespace coasyncpp;
+using namespace coasyncpp::expected;
 
-auto co(bool isThrow = false) -> async<std::expected<int, std::runtime_error>>
+auto co(bool isThrow = false) -> async<int>
 {
-    try
-    {
-        if(!isThrow)
-            co_return std::expected<int, std::runtime_error>(10);
-        else
-            throw std::runtime_error("Error");
-    }
-    catch(const std::runtime_error & e)
-    {
-        co_return std::unexpected<std::runtime_error>(e);
-    }
-    
+    if(!isThrow)
+        co_return 10;
+    else
+        throw std::runtime_error("Some Runtime Error.");
 }
 
 auto process(auto task)
 {
-    task.value()
-        .and_then([](auto value)
+    task.result()
+        .transform_error([](auto ex) -> std::runtime_error
+            {
+                return std::runtime_error(ex.what());
+            })
+        .transform([](auto x) { return x * x; })
+        .and_then([](auto value) -> std::expected<int, std::runtime_error>
             {
                 std::cout << value << std::endl; 
-                return std::expected<int, std::runtime_error>(value); 
+                return value; 
             })
-        .or_else([](auto &&ex) -> std::expected<int, std::runtime_error>
+        .or_else([](auto ex) -> std::expected<int, std::runtime_error>
             {
                 std::cout << ex.what() << std::endl;
-                return std::unexpected<std::runtime_error>(ex); 
+                return std::unexpected<std::runtime_error>(ex.what()); 
             });
 }
 
