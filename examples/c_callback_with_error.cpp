@@ -33,7 +33,7 @@ void threadingPoolWorker()
             if (id == 10)
                 callback(50, 0, nullptr, userData);
             else
-                callback(75, 0, nullptr, userData);
+                callback(0, 1, "IO Error.", userData);
         }
     }
 }
@@ -110,7 +110,7 @@ auto main(int argc, char *argv[]) -> int
     /// Execute calculation task.
     task.execute();
     // Output calculation result.
-    assert(task && (10 + 50 + 75 == *task));
+    assert(!task);
 
     task.result()
         .and_then([](auto x) -> std::expected<int, async_error>

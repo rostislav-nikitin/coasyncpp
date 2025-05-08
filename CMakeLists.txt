@@ -25,6 +25,11 @@ add_executable(c_callback
 )
 target_include_directories(c_callback PRIVATE "${CMAKE_SOURCE_DIR}/include")
 
+add_executable(c_callback_with_error
+    examples/c_callback_with_error.cpp
+)
+target_include_directories(c_callback_with_error PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
 add_executable(error_handling
     examples/error_handling.cpp
 )

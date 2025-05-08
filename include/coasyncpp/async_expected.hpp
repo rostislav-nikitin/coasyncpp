@@ -22,34 +22,6 @@ using namespace coasyncpp;
 
 template <typename T> class async;
 
-/// @brief The class that represents an aync error.
-class async_error : public std::runtime_error
-{
-  public:
-    async_error(char const *msg) : async_error(0, msg)
-    {
-    }
-
-    async_error(int code, char const *msg) : code_{code}, runtime_error("Error")
-    {
-        strcpy(msg_, msg);
-    }
-
-    char const *what() const _GLIBCXX_NOTHROW override
-    {
-        return msg_;
-    }
-
-    int code()
-    {
-        return code_;
-    }
-
-  private:
-    int code_{};
-    char msg_[256];
-};
-
 /// @bref The type that represents value type.
 template <typename T> using expected_value_type = std::expected<T, async_error>;
 

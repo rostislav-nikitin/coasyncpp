@@ -7,6 +7,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include <expected>
 
 namespace coasyncpp
 {
@@ -109,18 +110,35 @@ template <typename T> struct awake_handle
     std::mutex mt_{};
     std::condition_variable cv_{};
     bool completed_{};
+
+    std::expected<T, async_error> result_{};
+
+    auto getResult() -> std::expected<T, async_error>
+    {
+        return result_;
+    }
+
+/*
     T value_{};
 
     T getValue() const
     {
         return value_;
     }
+*/
 };
 template <> struct awake_handle<void>
 {
     std::mutex mt_{};
     std::condition_variable cv_{};
     bool completed_{};
+
+    std::expected<void, async_error> result_{};
+
+    auto getResult() -> std::expected<void, async_error>
+    {
+        return result_;
+    }
 };
 
 // Create task handle
@@ -149,16 +167,33 @@ template <> void suspend(awake_handle<void> *handle)
 template <typename T> void resume(T value, awake_handle<T> *handle)
 {
     handle->completed_ = true;
-    handle->value_ = value;
+    handle->result_ = value;
     std::lock_guard lock(handle->mt_);
     handle->cv_.notify_one();
 }
+
+template <typename T> void resume(int errorCode, char const *errorMessage, awake_handle<T> *handle)
+{
+    handle->completed_ = true;
+    handle->result_ = std::unexpected(async_error{errorCode, errorMessage});
+    std::lock_guard lock(handle->mt_);
+    handle->cv_.notify_one();
+}
+
 void resume(awake_handle<void> *handle)
 {
     handle->completed_ = true;
     std::lock_guard lock(handle->mt_);
     handle->cv_.notify_one();
 }
+void resume(int errorCode, char const *errorMessage, awake_handle<void> *handle)
+{
+    handle->completed_ = true;
+    handle->result_ = std::unexpected(async_error{errorCode, errorMessage});
+    std::lock_guard lock(handle->mt_);
+    handle->cv_.notify_one();
+}
+
 } // namespace coasyncpp
 
 #endif
