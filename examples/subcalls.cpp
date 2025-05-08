@@ -33,10 +33,10 @@ auto middleFunc(int x) -> async<int>
 auto outerFunc(int x) -> async<int>
 {
     auto y = co_await middleFunc(x);
-    auto z = co_await middleFunc(x);
-
     if (!y)
         co_return y;
+
+    auto z = co_await middleFunc(x);
     if (!z)
         co_return z;
 
@@ -47,6 +47,9 @@ auto main(int argc, char *argv[]) -> int
 {
     auto task{outerFunc(5)};
     task.execute();
+
+    assert(task && (*task == (5 * 10 + 5 * 10 + 5)));
+    
     task.result()
         .and_then([](auto x) -> std::expected<int, async_error> {
             std::cout << x << std::endl;
@@ -57,7 +60,7 @@ auto main(int argc, char *argv[]) -> int
             return std::unexpected(ex);
         });
 
-    assert(task && (*task == (5 * 10 + 5 * 10 + 5)));
+    
 
     return EXIT_SUCCESS;
 }
