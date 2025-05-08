@@ -20,7 +20,12 @@ add_executable(multitasking
 )
 target_include_directories(multitasking PRIVATE "${CMAKE_SOURCE_DIR}/include")
 
-add_executable(ccallback
+add_executable(c_callback
     examples/c_callback.cpp
 )
-target_include_directories(ccallback PRIVATE "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(c_callback PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
+add_executable(error_handling
+    examples/error_handling.cpp
+)
+target_include_directories(error_handling PRIVATE "${CMAKE_SOURCE_DIR}/include")
