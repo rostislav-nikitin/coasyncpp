@@ -15,8 +15,8 @@ using namespace coasyncpp::variant;
 auto innerFunc() -> async<int, std::exception, async_error>
 {
     //throw std::runtime_error("Number Error.");
-    //co_return 10;
-    co_return std::unexpected(async_error("RERROR"));
+    co_return 10;
+    //co_return std::unexpected(async_error("RERROR"));
 }
 
 /// @brief The middle coroutine.
@@ -57,7 +57,7 @@ auto main(int argc, char *argv[]) -> int
     auto task{outerFunc(5)};
     task.execute();
 
-    //assert(task && (*task == (5 * 10 + 5 * 10 + 5)));
+    assert(task && (*task == (5 * 10 + 5 * 10 + 5)));
 
     using result_t = expected_result_t<int, std::exception, async_error>;
 
@@ -76,7 +76,7 @@ auto main(int argc, char *argv[]) -> int
                 [](async_error ex){ std::cout << "async_error.what(): " << ex.what(); }
             }, ex);
             */
-            //std::visit([](auto &&ex) { std::cout << ex.what() << std::endl; }, vex);
+            std::visit([](auto &&ex) { std::cout << ex.what() << std::endl; }, vex);
 
             return std::unexpected(vex);
         });

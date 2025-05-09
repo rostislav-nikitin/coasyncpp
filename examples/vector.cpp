@@ -16,8 +16,8 @@ auto main(int argc, char *arvgv[]) -> int
 {
     auto vec = getVector();
     vec.execute();
+    
     std::cout << vec.result().size() << std::endl;
-
 
     return EXIT_SUCCESS;
 }
