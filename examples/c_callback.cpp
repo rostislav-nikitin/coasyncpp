@@ -49,7 +49,7 @@ void stopThreadPool()
     isRun = false;
     threadingPoolWorkerThread.join();
 }
-/// @brief The function that represents a part of the external C API of the third party library.
+/// @brief The function that represents a part of the external C API of the third party IO library.
 /// @param id The parameter that represents an id of some interesetd entity.
 /// @param callback The parameter that represents a callback function that will called when job will done.
 /// @param userData The parameter that represents a user data will be passed back via callback call.
@@ -60,7 +60,7 @@ void asyncFunc(int id, callback_t callback, void *userData)
 
 /// @brief  The function that represents a user callback.
 /// @param value The parameter that represents value recived from the third party io library.
-/// @param userData The parameter that represents a used data passed back to the callback function.
+/// @param userData The parameter that represents a user data passed back to the callback function.
 void userCallback(int value, int errorCode, char const *errorMessage, void *userData)
 {
     if(errorCode)

@@ -2,10 +2,183 @@
 ![Coroutine async C++ library](https://github.com/rostislav-nikitin/coasyncpp/blob/main/icon-96.png?raw=true)<strong style="font-size: 200%; margin-left: -20px; vertical-align:baseline;">coasyncpp</strong>
 
 ## About
-As you may know the coroutines support is one of the big four features of the C++20. Coroutines gives to the developer base mechanisms and abstractions to implement coperative multitasking.
+As you may know the coroutines support is one of the big four features added to the C++20. Coroutines provides to the developer base mechanisms and abstractions to implement a coperative multitasking.
 
-The purpose of this library provide to the C++ developer easy to use semantics to build asynchronouse task based, functional, ranges supporting code like this:
+The purpose of this library to provide to the C++ developer easy to use semantics to build asynchronous task based, functional code with support of the ranges.
 
+But why we need it? To understand this let's look into the next examples.
+
+### Problem
+
+The fist one is a C++ asyncronous API wich is foce us to use spagetti code like below.
+
+```C++
+int main(int argc, char* arg[])
+{
+    ioReadTask(int id, [](SomeEntity &entity)
+    {
+        // Some business logic
+        ioWriteTask(entity, [](WriteResult &result)
+        {
+            // Some result processing
+            ioWriteAnotherTask(result, [](AnotherWriteResult &resule)
+            {
+                //...
+                    //...
+                        //...
+                            log();
+            })
+        })
+    });
+}
+```
+
+Another example. Let's say we have a some asynchronous non-blocking C API. It consists of the bunch of the types and IO functions.
+
+```C++
+/// @brief Some arbitraty entity structure.
+struct Entity
+{
+    //...
+};
+
+// @brief Read callback type.
+using read_callback_t = void(*)(Entity &entity, void *userData);
+
+// @brief Write callback type.
+using write_callback_t = void(*)(WriteResult &result, void *userData);
+
+/// @brief The function that represents a part of the external C API of the third party IO library.
+void ioReadFunc(int entityId, read_callback_t callback, void *userData)
+{
+    // Register some task to run read IO in the separater thread
+    // When task done -- run callback
+}
+
+/// @brief The function that represents a part of the external C API of the third party IO library.
+void ioWriteFunc(Entity* entity, write_callback_t callback, void *userData)
+{
+    // Register some task to run write IO in the separater thread
+    // When task done -- run callback
+}
+```
+
+To use this API we should write not obvious code like below.
+```C++
+
+class Controller;
+
+/// @brief  The function that represents an API user read callback.
+void ioReadCallback(Entity &entity, void *userData)
+{
+    Controller *controller = static_cast<Controller *>(userData);
+    controller.process(entity);
+}
+
+/// @brief  The function that represents an API user write callback.
+void ioWriteCallback(WriteResult &result, void *userData)
+{
+    Controller *controller = static_cast<Controller *>(userData);
+    controller.log(result);
+}
+
+class Controller
+{
+public:
+    void read(int entityId)
+    {
+        ioReadFunc(entityId, &ioReadCallback, this);
+    }
+    void process(Entity &entity)
+    {
+        // Do some processing...
+        // Save entity
+        ioWriteFunc(entityId, &ioWriteCallback, this);
+    }
+    void log(WriteResult &result)
+    {
+        // Logging results
+    }
+};
+```
+
+### Solution
+
+But with use or coasyncpp library we can get much more readable code, wich represents all this asynchronouse code with a sequence of calls like a simple synchonous code like below.
+
+```C++
+auto process(int entityId) -> asyc<void>
+{
+    auto entity = co_await ioReadTask(entutyId);
+    auto result = co_await ioWriteTask(entity);
+
+    log(result);
+}
+
+auto main(int argc, char *argv[])
+{
+    int entityId = 42;
+    auto task = process(entityId)
+    task.exeute();
+    task.result()
+        // Normal path
+        .and_then([](auto x) -> std::expected<int, async_error>
+            {
+                std::cout << x << std::endl;
+                return x;
+            })
+        // Error path
+        .or_else([](auto ex) -> std::expected<int, async_error>
+            {
+                std::cout << ex.what() << std::endl;
+                return std::unexpected(ex);
+            });
+
+}
+
+So such approach makes high-level algorithm more readable, and as result more maintainable and bug free.
+
+```
+But of course this solution also not absolutely perfect and has some of the boilerplate code.
+```C++
+/// @brief  The function that represents a user callback.
+void ioReadCallback(Entity &entity, void *userData)
+{
+    resume(entity, static_cast<awake_handle<int> *>(userData));
+}
+
+/// @brief The coroutine that calls third party IO library async C API function.
+auto ioReadTask(int id) -> async<int>
+{
+    std::unique_ptr<awake_handle<int>> handle{createTaskHandle<int>()};
+    ioReadFunc(id, ioReadCallback, static_cast<void *>(handle.get()));
+    suspend(handle.get());
+
+    co_return handle->getResult();
+}
+
+/// @brief  The function that represents a user callback.
+void ioWriteCallback(WriteResult &result, void *userData)
+{
+    resume(result, static_cast<awake_handle<int> *>(userData));
+}
+
+/// @brief The coroutine that calls third party IO library async C API function.
+auto ioWriteTask(int id) -> async<int>
+{
+    std::unique_ptr<awake_handle<int>> handle{createTaskHandle<int>()};
+    ioWriteFunc(id, ioWriteCallback, static_cast<void *>(handle.get()));
+    suspend(handle.get());
+
+    co_return handle->getResult();
+}
+
+
+The next piece of core shows how coayncpp can be used to generate sequences of values.
+
+```
+
+or this:
 
 ```C++
 #include <coasync/async.hpp>
@@ -17,7 +190,7 @@ The purpose of this library provide to the C++ developer easy to use semantics t
 
 using namespace coasync::core;
 
-/// @bref Fibonachi numbers generation coroutine with automatical ranges sucpport.
+/// @bref Fibonachi numbers generator coroutine with automatical ranges sucpport.
 auto fib() -> async<int>
 {
     int n1{0};
@@ -33,10 +206,10 @@ auto fib() -> async<int>
     }
 }
 
-/// @bref main function
+/// @bref The main function
 auto main(int argc, char *argv[]) -> int
 {
-    /// Iterating over first 30 Fibonachi numbers starting from the first number.
+    /// Iterating over the first 30 Fibonachi numbers starting from the first one
     for (auto [index, n] : fib(1, 30) 
             // Filter out odd numbers
             | stdv::filter([](auto x) { return 1 == x % 2; }) 
