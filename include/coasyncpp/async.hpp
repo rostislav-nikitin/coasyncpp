@@ -3,5 +3,6 @@
 
 #include "async_core.hpp"
 #include "async_expected.hpp"
+#include "async_variant.hpp"
 
 #endif

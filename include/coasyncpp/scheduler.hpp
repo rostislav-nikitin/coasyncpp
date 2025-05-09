@@ -174,17 +174,17 @@ template <typename T> void resume(T value, awake_handle<T> *handle)
 
 template <typename T> void resume(int errorCode, char const *errorMessage, awake_handle<T> *handle)
 {
-    handle->completed_ = true;
     handle->result_ = std::unexpected(async_error{errorCode, errorMessage});
     std::lock_guard lock(handle->mt_);
     handle->cv_.notify_one();
+    handle->completed_ = true;
 }
 
 void resume(awake_handle<void> *handle)
 {
-    handle->completed_ = true;
     std::lock_guard lock(handle->mt_);
     handle->cv_.notify_one();
+    handle->completed_ = true;
 }
 void resume(int errorCode, char const *errorMessage, awake_handle<void> *handle)
 {

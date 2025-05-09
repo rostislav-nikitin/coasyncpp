@@ -40,7 +40,7 @@ class async_error : public std::runtime_error
 
   private:
     int code_{};
-    char msg_[256];
+    char msg_[64];
 };
 
 /// @brief The class that represents out of values sentinel.
