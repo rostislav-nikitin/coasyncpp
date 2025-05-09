@@ -30,7 +30,7 @@ void threadingPoolWorker()
             auto [id, callback, userData] = callbacksQueue.front();
             callbacksQueue.pop();
 
-            if (id == 10)
+            if (10 == id)
                 callback(50, 0, nullptr, userData);
             else
                 callback(0, 1, "IO Error.", userData);
@@ -47,7 +47,7 @@ void stopThreadPool()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     isRun = false;
-    threadingPoolWorkerThread.join();
+        threadingPoolWorkerThread.join();
 }
 /// @brief The function that represents a part of the external C API of the third party library.
 /// @param id The parameter that represents an id of some interesetd entity.
@@ -94,8 +94,6 @@ auto calculationTask(int initial) -> async<int>
     auto y = co_await ioTask(20);
     if(!y)
         co_return y;
-
-    
     
     co_return initial + *x + *y;
 }
