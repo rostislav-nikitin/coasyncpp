@@ -127,7 +127,7 @@ template <typename T, typename... Es> class async : public async_interface
         resume_awaiter<promise_type> final_suspend() noexcept
         {
             isDone_ = true;
-            return {isAwaitReady_};
+            return {isFromStackCall_};
         }
         std::suspend_always return_value(expected_result_t<T, Es...> value)
         {
@@ -164,9 +164,10 @@ template <typename T, typename... Es> class async : public async_interface
             return async<T, Es...>(std::coroutine_handle<promise_type>::from_promise(*this));
         }
 
+
         expected_result_t<T, Es...> value_{};
         std::coroutine_handle<> callerHandle_{};
-        bool isAwaitReady_{true};
+        bool isFromStackCall_{true};
         bool isDone_{};
     };
 
@@ -177,28 +178,37 @@ template <typename T, typename... Es> class async : public async_interface
     }
     void await_suspend(std::coroutine_handle<> callerHandle)
     {
-        selfHandle_.promise().callerHandle_ = callerHandle;
-        selfHandle_.promise().isAwaitReady_ = false;
-        selfHandle_.resume();
+        selfHandle_->promise().callerHandle_ = callerHandle;
+        selfHandle_->promise().isFromStackCall_ = false;
+        selfHandle_->resume();
     }
     expected_result_t<T, Es...> await_resume()
     {
-        return selfHandle_.promise().value_;
+        return selfHandle_->promise().value_;
     }
 
     // Members
-    async(std::coroutine_handle<promise_type> selfHandle) : selfHandle_{selfHandle}
+    async(std::coroutine_handle<promise_type> selfHandle) :
+        selfHandle_
+        {
+            new std::coroutine_handle<promise_type>{selfHandle},
+            [](std::coroutine_handle<promise_type> *handlePtr)
+            {
+                handlePtr->destroy();
+                delete handlePtr;
+            }
+        }
     {
     }
 
     void execute() override
     {
-        if (!selfHandle_.done())
-            selfHandle_.resume();
+        if (!selfHandle_->done())
+            selfHandle_->resume();
     }
     bool done() override
     {
-        return selfHandle_.promise().isDone_;
+        return selfHandle_->promise().isDone_;
     }
 
     async_iterator<T, Es...> begin()
@@ -212,20 +222,20 @@ template <typename T, typename... Es> class async : public async_interface
     }
     operator bool() const
     {
-        return selfHandle_.promise().value_.has_value();
+        return selfHandle_->promise().value_.has_value();
     }
     expected_result_t<T, Es...> operator*()
     {
-        return selfHandle_.promise().value_;
+        return selfHandle_->promise().value_;
     }
     expected_result_t<T, Es...> result()
     {
-        return selfHandle_.promise().value_;
+        return selfHandle_->promise().value_;
     }
 
   protected:
   private:
-    std::coroutine_handle<promise_type> selfHandle_{};
+    std::shared_ptr<std::coroutine_handle<promise_type>> selfHandle_{};
 };
 
 /// @brief The class that represents async task.
@@ -243,7 +253,7 @@ template <typename... Es> class async<void, Es...> : public async_interface
         resume_awaiter<promise_type> final_suspend() noexcept
         {
             isDone_ = true;
-            return {isAwaitReady_};
+            return {isFromStackCall_};
         }
         std::suspend_always return_void()
         {
@@ -276,7 +286,7 @@ template <typename... Es> class async<void, Es...> : public async_interface
 
         expected_result_t<void, Es...> value_{};
         std::coroutine_handle<> callerHandle_;
-        bool isAwaitReady_{true};
+        bool isFromStackCall_{true};
         bool isDone_{};
     };
 
@@ -287,44 +297,53 @@ template <typename... Es> class async<void, Es...> : public async_interface
     }
     void await_suspend(std::coroutine_handle<> callerHandle)
     {
-        selfHandle_.promise().callerHandle_ = callerHandle;
-        selfHandle_.promise().isAwaitReady_ = false;
-        selfHandle_.resume();
+        selfHandle_->promise().callerHandle_ = callerHandle;
+        selfHandle_->promise().isFromStackCall_ = false;
+        selfHandle_->resume();
     }
     void await_resume()
     {
     }
 
     // Members
-    async(std::coroutine_handle<promise_type> selfHandle) : selfHandle_{selfHandle}
+    async(std::coroutine_handle<promise_type> selfHandle) :
+        selfHandle_
+        {
+            new std::coroutine_handle<promise_type>{selfHandle},
+            [](std::coroutine_handle<promise_type> *handlePtr)
+            {
+                handlePtr->destroy();
+                delete handlePtr;
+            }
+        }
     {
     }
 
     void execute() override
     {
-        if (!selfHandle_.done())
-            selfHandle_.resume();
+        if (!selfHandle_->done())
+            selfHandle_->resume();
     }
     bool done() override
     {
-        return selfHandle_.promise().isDone_;
+        return selfHandle_->promise().isDone_;
     }
     operator bool() const
     {
-        return selfHandle_.promise().value_.has_value();
+        return selfHandle_->promise().value_.has_value();
     }
     expected_result_t<void, Es...> operator*()
     {
-        return selfHandle_.promise().value_;
+        return selfHandle_->promise().value_;
     }
     expected_result_t<void, Es...> result()
     {
-        return selfHandle_.promise().value_;
+        return selfHandle_->promise().value_;
     }
 
   protected:
   private:
-    std::coroutine_handle<promise_type> selfHandle_{};
+    std::shared_ptr<std::coroutine_handle<promise_type>> selfHandle_{};
 };
 
 template <typename T, typename... Es> async<void, Es...> whenAll(std::vector<async<T, Es...>> tasks)

@@ -14,8 +14,8 @@ using namespace coasyncpp::variant;
 /// @return Returns const value.
 auto innerFunc() -> async<int, std::exception, async_error>
 {
-    //throw std::runtime_error("Number Error.");
-    co_return 10;
+    throw std::runtime_error("Number Error.");
+    //co_return 10;
     //co_return std::unexpected(async_error("RERROR"));
 }
 
@@ -57,7 +57,7 @@ auto main(int argc, char *argv[]) -> int
     auto task{outerFunc(5)};
     task.execute();
 
-    assert(task && (*task == (5 * 10 + 5 * 10 + 5)));
+    //assert(task && (*task == (5 * 10 + 5 * 10 + 5)));
 
     using result_t = expected_result_t<int, std::exception, async_error>;
 

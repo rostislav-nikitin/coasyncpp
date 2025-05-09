@@ -13,6 +13,7 @@ class async_interface
   public:
     virtual void execute() = 0;
     virtual bool done() = 0;
+    virtual ~async_interface() { }
 };
 
 /// @brief The class that represents an aync error.
@@ -23,14 +24,8 @@ class async_error : public std::runtime_error
     {
     }
 
-    async_error(int code, char const *msg) : code_{code}, runtime_error("Error")
+    async_error(int code, char const *msg) : code_{code}, runtime_error(msg)
     {
-        strcpy(msg_, msg);
-    }
-
-    char const *what() const _GLIBCXX_NOTHROW override
-    {
-        return msg_;
     }
 
     int code()
@@ -40,7 +35,6 @@ class async_error : public std::runtime_error
 
   private:
     int code_{};
-    char msg_[64];
 };
 
 /// @brief The class that represents out of values sentinel.
@@ -53,24 +47,32 @@ struct async_sentinel
 template <typename T> class resume_awaiter
 {
   public:
-    resume_awaiter(bool isAwaitReady) : isAwaitReady_{isAwaitReady}
+    resume_awaiter(bool isFromStackCall) : isFromStackCall_{isFromStackCall}
     {
     }
     bool await_ready() noexcept
     {
-        return isAwaitReady_;
+        return false;
     }
     std::coroutine_handle<> await_suspend(std::coroutine_handle<T> selfHandle) noexcept
     {
-        return selfHandle.promise().callerHandle_;
+        if(isFromStackCall_)
+          return std::noop_coroutine();
+        else
+          return selfHandle.promise().callerHandle_;
     }
     void await_resume() noexcept
     {
     }
 
   private:
-    bool isAwaitReady_{};
+    bool isFromStackCall_{};
 };
+
+void coroutineHandleDestroyer(std::coroutine_handle<> handle)
+{
+  handle.destroy();
+}
 } // namespace coasyncpp
 
 #endif
