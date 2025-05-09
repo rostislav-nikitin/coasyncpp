@@ -177,10 +177,9 @@ auto ioWriteTask(int id) -> async<int>
 
     co_return handle->getResult();
 }
-
+```
 
 The next piece of code shows how coayncpp can be used to generate sequences of values.
-
 
 ```C++
 #include <coasync/async.hpp>
