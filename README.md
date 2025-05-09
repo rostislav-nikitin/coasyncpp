@@ -10,7 +10,7 @@ But why we need it? To understand this let's look into the next examples.
 
 ### Problem
 
-The fist one is a C++ asyncronous API wich is foce us to use spagetti code like below.
+The first one is a C++ asynchronous API that encourages us to write spaghetti code like the one below.
 
 ```C++
 int main(int argc, char* arg[])
@@ -179,7 +179,7 @@ auto ioWriteTask(int id) -> async<int>
 }
 ```
 
-The next piece of code shows how coayncpp can be used to generate sequences of values.
+The next piece of code shows how coasyncpp can be used to generate sequences of values.
 
 ```C++
 #include <coasync/async.hpp>
@@ -191,7 +191,7 @@ The next piece of code shows how coayncpp can be used to generate sequences of v
 
 using namespace coasync::core;
 
-/// @bref Fibonachi numbers generator coroutine with automatical ranges sucpport.
+/// @bref Fibonachi numbers generator coroutine with automatical ranges support.
 auto fib() -> async<int>
 {
     int n1{0};
@@ -257,7 +257,7 @@ I hope this examples ispired you to get deeper into the coroutines and coasyncpp
 
 ## Build
 
-This is a header only library, so you can use it just by cloning repo and referencing heaer files.
+This is a header only library, so you can use it just by cloning repo and referencing header files.
 ```bash
 
 git clone https://github.com/rostislav-nikitin/coasyncpp.git
