@@ -15,9 +15,12 @@ The fist one is a C++ asyncronous API wich is foce us to use spagetti code like 
 ```C++
 int main(int argc, char* arg[])
 {
+    // Read some entity
     ioReadTask(int id, [](SomeEntity &entity)
     {
         // Some business logic
+        // ...
+        // Write result back
         ioWriteTask(entity, [](WriteResult &result)
         {
             // Some result processing
@@ -104,7 +107,7 @@ public:
 
 ### Solution
 
-But with use or coasyncpp library we can get much more readable code, wich represents all this asynchronouse code with a sequence of calls like a simple synchonous code like below.
+But with use of the coroutines and coasyncpp library we can get much more readable code, wich represents all this asynchronouse code with a sequence of calls like a simple synchonous code like below.
 
 ```C++
 auto process(int entityId) -> asyc<void>
@@ -117,28 +120,30 @@ auto process(int entityId) -> asyc<void>
 
 auto main(int argc, char *argv[])
 {
+    using reult_t = std::expected<int, async_error>;
+
     int entityId = 42;
-    auto task = process(entityId)
+    auto task = process(entityId);
     task.exeute();
     task.result()
         // Normal path
-        .and_then([](auto x) -> std::expected<int, async_error>
+        .and_then([](auto x) -> result_t
             {
                 std::cout << x << std::endl;
                 return x;
             })
         // Error path
-        .or_else([](auto ex) -> std::expected<int, async_error>
+        .or_else([](auto ex) -> result_t
             {
                 std::cout << ex.what() << std::endl;
                 return std::unexpected(ex);
             });
 
 }
-
-So such approach makes high-level algorithm more readable, and as result more maintainable and bug free.
-
 ```
+
+So such approach makes high-level algorithm more readable and as result more maintainable and bug free.
+
 But of course this solution also not absolutely perfect and has some of the boilerplate code.
 ```C++
 /// @brief  The function that represents a user callback.
@@ -174,11 +179,8 @@ auto ioWriteTask(int id) -> async<int>
 }
 
 
-The next piece of core shows how coayncpp can be used to generate sequences of values.
+The next piece of code shows how coayncpp can be used to generate sequences of values.
 
-```
-
-or this:
 
 ```C++
 #include <coasync/async.hpp>
@@ -252,10 +254,30 @@ Results:
 
 ```
 
+I hope this examples ispired you to get deeper into the coroutines and coasyncpp library in particular.
 
 ## Build
 
-## Use
+This is a header only library, so you can use it just by cloning repo and referencing heaer files.
+```bash
 
-## Examples
+git clone https://github.com/rostislav-nikitin/coasyncpp.git
+
+```
+
+But it you want to play with examples you can easely build them.
+
+```bash
+
+cd coasyncpp
+
+mkdir build && cd build
+
+cmake ..
+
+cmake --build .
+
+```
+
+## Usage
 
