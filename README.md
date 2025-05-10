@@ -342,7 +342,7 @@ auto coWithSuccess() -> async<int>
 auto coWithError() -> async<int>
 {
     throw std::runtime_error("Something went wrong...");
-	co_return 42;
+    co_return 42;
 }
 
 auto main(int argc, char *argv[]) -> int
@@ -409,13 +409,13 @@ auto coWithSuccess() -> async<int, std::runtime_error, async_error>
 auto coWithUncaughtRuntimeError() -> async<int, std::runtime_error, async_error>
 {
     throw std::runtime_error("Something went wrong...");
-	co_return 42;
+    co_return 42;
 }
 /// @brief When uncaught non std::exception inherited exception then async_error returned as result.
 auto coWithUncaughtUnsupportedError() -> async<int, std::runtime_error, async_error>
 {
     throw 84;
-	co_return 84;
+    co_return 84;
 }
 
 /// @brief Catch and return any custom exception.
