@@ -280,3 +280,162 @@ cmake --build .
 
 ## Usage
 
+Library provides three gradation of the coroutines: core, expected, variant. 
+The only difference between them is a return type.
+
+### Core
+
+Core functionality represented in the `coasyncpp::core` namespace.
+
+Let's look at the next example:
+
+```C++
+#include <coasyncpp/async.hpp>
+
+using namespace coasyncpp::core;
+
+auto co() -> async<int>
+{
+    co_return 42;
+}
+
+auto main(int argc, char *argv[])
+{
+    async<int> task = co();
+    task.execute();
+
+    int result = task.result();
+
+    std::cout << result << std::endl;
+}
+```
+
+```
+42
+```
+
+So, in the core implementation coroutine result type is an async<T> where the type of the task.result() is T.
+
+### Expected
+
+Expected functionality represented in the `coasyncpp::expected` namespace.
+
+Let's look at the next example:
+
+```C++
+#include <coasyncpp/async.hpp>
+
+#include <stdexcept>
+#include <expected>
+
+using namespace coasyncpp::expected;
+
+auto coWithSuccess() -> async<int, async_error>
+{
+    co_return 42;
+}
+
+auto coWithError() -> async<int, async_error>
+{
+    throw std::runtime_error("Something went wrong...");
+}
+
+auto main(int argc, char *argv[])
+{
+    // Success case
+    async<int> taskWithSuccess = coWithSuccess();
+    taskWithSuccess.execute();
+
+    async<int> resultWithSuccess = taskWithSuccess.result();
+
+    if(resultWithSuccess.has_value())
+        std::cout << resultWithSuccess.value() << std::endl;
+    else
+        std::cout << resultWithSuccess.error().what() << std::endl;
+
+    // Error caase
+    async<int> taskWithError = coWithError();
+    taskWithError.execute();
+
+    async<int> resultWithError = taskWithError.result();
+
+    if(resultWithError.has_value())
+        std::cout << resultWithError.value() << std::endl;
+    else
+        std::cout << resultWithError.error().what() << std::endl;
+}
+```
+
+```
+42
+Something went wrong...
+```
+
+As you can see in the expected implementation coroutine result type is an `async<T>` where the type of the `task.result()` is a `std::expected<T, async_error>`. In the successfull case the resulting value will be wrapped into the `std::expected` value member. But if some uncatched exeception will be thrown then error member of std::excpected will store the `async_error`.
+
+All exceptions happends inside a coroutine are catched at the background and transformed into the `async_error`.
+
+### Variant
+
+Variant functionality represented in the `coasyncpp::variant` namespace.
+
+Let's look at the next example:
+
+```C++
+#include <coasyncpp/async.hpp>
+
+#include <stdexcept>
+#include <expected>
+#include <variant>
+
+using namespace coasyncpp::variant;
+
+auto coWithSuccess() -> async<int, std::runtime_error, async_error>
+{
+    co_return 42;
+}
+
+auto coWithRuntimeError() -> async<int, std::runtime_error, async_error>
+{
+    throw std::runtime_error("Something went wrong...");
+}
+
+auto coWithUnsupportedError() -> async<int, std::runtime_error, async_error>
+{
+    throw 84;
+}
+
+void runCo(auto &&co)
+{
+    auto task = co.execute();
+    auto result = task.result();
+
+    using result_t = expected_result_t<int, std::runtime_error, async_error>;
+    
+    task.result()
+        .and_then([](auto x) -> result_t {
+            std::cout << x << std::endl;
+            return x;
+        })
+        .or_else([](auto vex) -> result_t {
+            std::visit([](auto &&ex) { std::cout << ex.what() << std::endl; }, vex);
+
+            return std::unexpected(vex);
+        });
+}
+
+auto main(int argc, char *argv[])
+{
+    runCo(coWithSuccess());
+    runCo(coWithRuntimeError());
+    runCo(coWithUnsupportedError());
+}
+```
+
+```
+42
+Something went wrong...
+Unknown error.
+```
+
+In the variant implementation coroutine result type is an `async<T, E1, E2, ...>` where the type of the `task.result()` is a `std::expected<T, std::variant<E1, E2, ...>>`. `E1, E2, ...` the types of the error that can happens via coroutine call. In the successfull case the resulting value will be wrapped into the `std::expected` value member. But if some uncatched exeception will be thrown then error member of std::excpected will store the `std::variant<E1, E2, ...>` with `En` error stored. In case error does not inherited from the std::exception happend it will be transformed into the `async_error`.
