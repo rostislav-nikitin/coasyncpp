@@ -96,7 +96,7 @@ public:
     {
         // Do some processing...
         // Save entity
-        ioWriteFunc(entityId, &ioWriteCallback, this);
+        ioWriteFunc(entity, &ioWriteCallback, this);
     }
     void log(WriteResult &result)
     {
