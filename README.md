@@ -2,15 +2,15 @@
 ![Coroutine based async tasks C++ library](https://github.com/rostislav-nikitin/coasyncpp/blob/main/logo.png?raw=true)
 
 ## About
-As you may know the coroutines support is one of the big four features added to the C++20. Coroutines provides to the developer base mechanisms and abstractions to implement a coperative multitasking.
+As you may know, coroutines support is one of the big four features added to C++20. Coroutines provide developers a base mechanism and abstractions for implementing cooperative multitasking.
 
-The purpose of this library to provide to the C++ developer easy to use semantics to build asynchronous task based, functional code with support of the ranges.
+The library's purpose is to provide C++ developers easy-to-use semantics for building asynchronous task-based, functional code with support for ranges.
 
-But why we need it? To understand this let's look into the next examples.
+But why do we need it? To understand this let's look at the next examples.
 
 ### Problem
 
-The first one is a C++ asynchronous API that encourages us to write spaghetti code like the one below.
+The first is a C++ asynchronous API that encourages us to write spaghetti code like the one below.
 
 ```C++
 int main(int argc, char* arg[])
@@ -36,7 +36,7 @@ int main(int argc, char* arg[])
 }
 ```
 
-Another example. Let's say we have a some asynchronous non-blocking C API. It consists of the bunch of the types and IO functions.
+Another example. Let's say we have some asynchronous non-blocking C API. It consists of a bunch of types and IO functions.
 
 ```C++
 /// @brief Some arbitraty entity structure.
@@ -66,7 +66,7 @@ void ioWriteFunc(Entity* entity, write_callback_t callback, void *userData)
 }
 ```
 
-To use this API we should write not obvious code like below.
+To use this API, we should write non-obvious code like below.
 ```C++
 
 class Controller;
@@ -100,14 +100,14 @@ public:
     }
     void log(WriteResult &result)
     {
-        // Logging results
+        // Log results
     }
 };
 ```
 
 ### Solution
 
-But with use of the coroutines and coasyncpp library we can get much more readable code, wich represents all this asynchronouse code with a sequence of calls like a simple synchonous code like below.
+But with the use of the coroutines and coasyncpp library, we can get much more readable code, which represents all this asynchronous code with a sequence of calls like a simple synchronous code, as shown below.
 
 ```C++
 auto process(int entityId) -> asyc<void>
@@ -142,9 +142,9 @@ auto main(int argc, char *argv[])
 }
 ```
 
-So such approach makes high-level algorithm more readable and as result more maintainable and bug free.
+So such an approach makes a high-level algorithm more readable and, as a result, more maintainable and bug-free.
 
-But of course this solution also not absolutely perfect and has some of the boilerplate code.
+But of course, this solution is also not perfect and has some boilerplate code.
 ```C++
 /// @brief  The function that represents a user callback.
 void ioReadCallback(Entity &entity, void *userData)
@@ -191,7 +191,7 @@ The next piece of code shows how coasyncpp can be used to generate sequences of 
 
 using namespace coasync::core;
 
-/// @bref Fibonachi numbers generator coroutine with automatical ranges support.
+/// @brief Fibonacci numbers generator coroutine with automatic range support.
 auto fib() -> async<int>
 {
     int n1{0};
@@ -207,10 +207,10 @@ auto fib() -> async<int>
     }
 }
 
-/// @bref The main function
+/// @brief The main function.
 auto main(int argc, char *argv[]) -> int
 {
-    /// Iterating over the first 30 Fibonachi numbers starting from the first one
+    /// Iterating over the first 30 Fibonacci numbers starting from the first one
     for (auto [index, n] : fib(1, 30) 
             // Filter out odd numbers
             | stdv::filter([](auto x) { return 1 == x % 2; }) 
@@ -253,18 +253,19 @@ Results:
 
 ```
 
-I hope this examples ispired you to get deeper into the coroutines and coasyncpp library in particular.
+I hope those examples inspired you to get deeper into the coroutines and coasyncpp library in particular.
 
 ## Build
 
-This is a header only library, so you can use it just by cloning repo and referencing header files.
+This is a header-only library, so you can use it just by cloning the repo and referencing the header files.
+
 ```bash
 
 git clone https://github.com/rostislav-nikitin/coasyncpp.git
 
 ```
 
-But it you want to play with examples you can easely build them.
+But if you want to play with examples, you can easily build them.
 
 ```bash
 
@@ -280,12 +281,12 @@ cmake --build .
 
 ## Usage
 
-Library provides three gradation of the coroutines: core, expected, variant. 
-The only difference between them is a return type.
+The library provides three gradations of the coroutines: core, expected, and variant. 
+The only difference between them is the return type.
 
 ### Core
 
-Core functionality represented in the `coasyncpp::core` namespace.
+Core functionality is represented in the `coasyncpp::core` namespace.
 
 Let's look at the next example:
 
@@ -314,11 +315,11 @@ auto main(int argc, char *argv[])
 42
 ```
 
-So, in the core implementation coroutine result type is an async<T> where the type of the task.result() is T.
+So, in the core implementation, coroutine result type is an async<T> where the type of the task.result() is T.
 
 ### Expected
 
-Expected functionality represented in the `coasyncpp::expected` namespace.
+Expected functionality is represented in the `coasyncpp::expected` namespace.
 
 Let's look at the next example:
 
@@ -371,13 +372,13 @@ auto main(int argc, char *argv[])
 Something went wrong...
 ```
 
-As you can see in the expected implementation coroutine result type is an `async<T>` where the type of the `task.result()` is a `std::expected<T, async_error>`. In the successfull case the resulting value will be wrapped into the `std::expected` value member. But if some uncatched exeception will be thrown then error member of std::excpected will store the `async_error`.
+As you can see in the expected implementation coroutine result type is an `async<T>` where the type of the `task.result()` is a `std::expected<T, async_error>`. In the successful case, the resulting value will be wrapped into the `std::expected` value member. But if some uncaught exception is thrown, then the error member of std::excpected will store the `async_error`.
 
-All exceptions happends inside a coroutine are catched at the background and transformed into the `async_error`.
+All exceptions that happen inside a coroutine are caught in the background and transformed into the `async_error`.
 
 ### Variant
 
-Variant functionality represented in the `coasyncpp::variant` namespace.
+Variant functionality is represented in the `coasyncpp::variant` namespace.
 
 Let's look at the next example:
 
@@ -438,4 +439,4 @@ Something went wrong...
 Unknown error.
 ```
 
-In the variant implementation coroutine result type is an `async<T, E1, E2, ...>` where the type of the `task.result()` is a `std::expected<T, std::variant<E1, E2, ...>>`. `E1, E2, ...` the types of the error that can happens via coroutine call. In the successfull case the resulting value will be wrapped into the `std::expected` value member. But if some uncatched exeception will be thrown then error member of std::excpected will store the `std::variant<E1, E2, ...>` with `En` error stored. In case error does not inherited from the std::exception happend it will be transformed into the `async_error`.
+In the variant implementation coroutine result type is an `async<T, E1, E2, ...>` where the type of the `task.result()` is a `std::expected<T, std::variant<E1, E2, ...>>`. `E1, E2, ...` are the types of errors that can happen via coroutine call. In the successful case, the resulting value will be wrapped into the `std::expected` value member. But if some uncaught exception is thrown, then the error member of std::excpected will store the `std::variant<E1, E2, ...>` with `En` error. In case an error is not inherited from the std::exception happens it will be transformed into the `async_error`.

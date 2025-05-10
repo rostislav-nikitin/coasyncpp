@@ -13,11 +13,11 @@ using namespace coasyncpp::core;
 
 namespace stdv = std::ranges::views;
 
-/// @brief The coroutine that generates Fibonachi numbers.
-/// @param startIndex The parameter that represents index of the first Fibonachi number to generate. Numbering stating
+/// @brief The coroutine that generates Fibonacci numbers.
+/// @param startIndex The parameter that represents index of the first Fibonacci number to generate. Numbering stating
 /// from the 1.
 /// @param count The parameter that represents the count of numbers to generate. Should be greater then 0.
-/// @return Returns the next Fibonachi number.
+/// @return Returns the next Fibonacci number.
 auto fib(int startIndex, int count) -> async<u_int64_t>
 {
     assert(startIndex > 0);
