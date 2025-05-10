@@ -376,9 +376,12 @@ auto main(int argc, char *argv[]) -> int
 Something went wrong...
 ```
 
-As you can see in the expected implementation coroutine result type is an `async<T>` where the type of the `task.result()` is a `std::expected<T, async_error>`. In the successful case, the resulting value will be wrapped into the `std::expected` value member. But if some uncaught exception is thrown, then the error member of std::excpected will store the `async_error`.
+As you can see in the expected implementation coroutine result type is an `async<T>` where the type of the `task.result()` is a `std::expected<T, async_error>`. 
 
-All exceptions that happen inside a coroutine are caught in the background and transformed into the `async_error`.
+- In the successful case, the resulting value will be wrapped into the `std::expected` value member
+- But if some uncaught exception is thrown, then the error member of std::excpected will store the `async_error`.
+
+So, all uncaught exceptions that happen inside a coroutine are caught in the background and transformed into the `async_error`.
 
 ### Variant
 
@@ -396,22 +399,39 @@ Let's look at the next example:
 
 using namespace coasyncpp::variant;
 
+/// @brief Returns valid result.
 auto coWithSuccess() -> async<int, std::runtime_error, async_error>
 {
     co_return 42;
 }
 
-auto coWithRuntimeError() -> async<int, std::runtime_error, async_error>
+/// @brief When uncaught exception then async_error returned as result.
+auto coWithUncaughtRuntimeError() -> async<int, std::runtime_error, async_error>
 {
     throw std::runtime_error("Something went wrong...");
 	co_return 42;
 }
-
-auto coWithUnsupportedError() -> async<int, std::runtime_error, async_error>
+/// @brief When uncaught non std::exception inherited exception then async_error returned as result.
+auto coWithUncaughtUnsupportedError() -> async<int, std::runtime_error, async_error>
 {
     throw 84;
 	co_return 84;
 }
+
+/// @brief Catch and return any custom exception.
+auto coWithCaughtRuntimeError() -> async<int, std::runtime_error, async_error>
+{
+    try
+    {
+        throw std::runtime_error("Something went wrong...");
+	    co_return 42;
+    }
+    catch(const std::runtime_error& e)
+    {
+        co_return std::unexpected(e);
+    }
+}
+
 
 auto runTask(async<int, std::runtime_error, async_error> &&task) -> void
 {
@@ -426,7 +446,7 @@ auto runTask(async<int, std::runtime_error, async_error> &&task) -> void
             return x;
         })
         .or_else([](auto vex) -> result_t {
-            std::visit([](auto &&ex) { std::cout << ex.what() << std::endl; }, vex);
+            std::visit([](auto &&ex) { std::cout << typeid(ex).name() << " : " << ex.what() << std::endl; }, vex);
 
             return std::unexpected(vex);
         });
@@ -435,8 +455,9 @@ auto runTask(async<int, std::runtime_error, async_error> &&task) -> void
 auto main(int argc, char *argv[]) -> int
 {
     runTask(coWithSuccess());
-    runTask(coWithRuntimeError());
-    runTask(coWithUnsupportedError());
+    runTask(coWithUncaughtRuntimeError());
+    runTask(coWithUncaughtUnsupportedError());
+    runTask(coWithCaughtRuntimeError());
 }
 ```
 
@@ -446,4 +467,10 @@ Something went wrong...
 Unknown error.
 ```
 
-In the variant implementation coroutine result type is an `async<T, E1, E2, ...>` where the type of the `task.result()` is a `std::expected<T, std::variant<E1, E2, ...>>`. `E1, E2, ...` are the types of errors that can happen via coroutine call. In the successful case, the resulting value will be wrapped into the `std::expected` value member. But if some uncaught exception is thrown, then the error member of std::excpected will store the `std::variant<E1, E2, ...>` with `En` error. In case an error is not inherited from the std::exception happens it will be transformed into the `async_error`.
+In the variant implementation coroutine result type is an `async<T, E1, E2, ...>` where the type of the `task.result()` is a `std::expected<T, std::variant<E1, E2, ...>>`. `E1, E2, ...` are the types of errors that can happen via coroutine call. 
+
+- In the successful case, the resulting value will be wrapped into the `std::expected` value member
+- If any uncaught exception is thrown (inherited from std::exception or not), then the error member of std::excpected will store the `std::variant<E1, E2, ...>` with `async_error`
+- If you want to put some typed error differ from the `async_error` then you need to catch exception in the coroutine code and return it via std::unexpected.
+
+So, all uncaught exceptions that happen inside a coroutine are caught in the background and transformed into the `async_error` and all other exceptions could be caught and returned via std::unexpected.

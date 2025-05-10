@@ -15,9 +15,7 @@ using namespace coasyncpp::variant;
 auto innerFunc() -> async<int, std::exception, async_error>
 {
     throw std::runtime_error("Number Error.");
-    
-    //co_return 10;
-    //co_return std::unexpected(async_error("RERROR"));
+    co_return 10;
 }
 
 /// @brief The middle coroutine.

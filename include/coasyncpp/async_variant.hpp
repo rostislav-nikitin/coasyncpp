@@ -149,9 +149,10 @@ template <typename T, typename... Es> class async : public async_interface
                 {
                     std::rethrow_exception(ePtr);
                 }
-                catch (const std::runtime_error &rex)
+                catch (const std::exception &rex)
                 {
-                    value_ = std::unexpected(std::variant<Es...>{rex});
+                    //value_ = std::unexpected(std::variant<Es...>{rex});
+                    value_ = std::unexpected(std::variant<Es...>(async_error(rex.what())));
                 }
                 /*
                 catch (const std::exception &ex)
