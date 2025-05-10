@@ -51,14 +51,16 @@ using read_callback_t = void(*)(Entity &entity, void *userData);
 // @brief Write callback type.
 using write_callback_t = void(*)(WriteResult &result, void *userData);
 
-/// @brief The function that represents a part of the external C API of the third party IO library.
+/// @brief The function that represents a part of the external C API 
+/// of the third party IO library.
 void ioReadFunc(int entityId, read_callback_t callback, void *userData)
 {
     // Register some task to run read IO in the separater thread
     // When task done -- run callback
 }
 
-/// @brief The function that represents a part of the external C API of the third party IO library.
+/// @brief The function that represents a part of the external C API 
+/// of the third party IO library.
 void ioWriteFunc(Entity* entity, write_callback_t callback, void *userData)
 {
     // Register some task to run write IO in the separater thread
@@ -411,7 +413,8 @@ auto coWithUncaughtRuntimeError() -> async<int, std::runtime_error, async_error>
     throw std::runtime_error("Something went wrong...");
     co_return 42;
 }
-/// @brief When uncaught non std::exception inherited exception then async_error returned as result.
+/// @brief When uncaught non std::exception inherited exception 
+/// then async_error returned as result.
 auto coWithUncaughtUnsupportedError() -> async<int, std::runtime_error, async_error>
 {
     throw 84;
@@ -431,7 +434,6 @@ auto coWithCaughtRuntimeError() -> async<int, std::runtime_error, async_error>
         co_return std::unexpected(e);
     }
 }
-
 
 auto runTask(async<int, std::runtime_error, async_error> &&task) -> void
 {
