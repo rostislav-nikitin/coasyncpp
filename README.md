@@ -473,6 +473,6 @@ In the variant implementation coroutine result type is an `async<T, E1, E2, ...>
 
 - In the successful case, the resulting value will be wrapped into the `std::expected` value member
 - If any uncaught exception is thrown (inherited from `std::exception` or not), then the error member of `std::expected` will store the `std::variant<E1, E2, ...>` with `async_error`
-- If you want to put some typed error different from the `async_error`, then you need to catch an exception in the coroutine code and return it via std::unexpected. In this case the error member of `std::expected` will store the `std::variant<E1, E2, ...>` with an error of any type from the `E1, E2, ...` set;
+- If you want to put some typed error different from the `async_error`, then you need to catch an exception in the coroutine code and return it via std::unexpected. In this case the error member of `std::expected` will store the `std::variant<E1, E2, ...>` with an error of any type from the `E1, E2, ...` set.
 
 So, all uncaught exceptions inside a coroutine are caught in the background and transformed into the `async_error`. If you want the coroutine to return the original or any custom exeception just catch it and return it via std::unexpected.
