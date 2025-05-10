@@ -4,7 +4,7 @@
 ## About
 As you may know, coroutines support is one of the big four features added to C++20. Coroutines provide developers a base mechanism and abstractions for implementing cooperative multitasking.
 
-The library's purpose is to provide C++ developers easy-to-use semantics for building asynchronous task-based, functional code with support for ranges.
+This library's purpose is to provide C++ developers easy-to-use semantics for building asynchronous task-based, functional code with support for ranges.
 
 But why do we need it? To understand this let's look at the next examples.
 
@@ -55,7 +55,7 @@ using write_callback_t = void(*)(WriteResult &result, void *userData);
 /// of the third party IO library.
 void ioReadFunc(int entityId, read_callback_t callback, void *userData)
 {
-    // Register some task to run read IO in the separater thread
+    // Register some task to run read IO in the separate thread
     // When task done -- run callback
 }
 
@@ -63,7 +63,7 @@ void ioReadFunc(int entityId, read_callback_t callback, void *userData)
 /// of the third party IO library.
 void ioWriteFunc(Entity* entity, write_callback_t callback, void *userData)
 {
-    // Register some task to run write IO in the separater thread
+    // Register some task to run write IO in the separate thread
     // When task done -- run callback
 }
 ```
@@ -319,7 +319,7 @@ auto main(int argc, char *argv[]) -> int
 42
 ```
 
-So, in the core implementation, coroutine result type is an async<T> where the type of the task.result() is T.
+So, in the core implementation, coroutine result type is an `async<T>` where the type of the `task.result()` is `T`.
 
 ### Expected
 
@@ -381,7 +381,7 @@ Something went wrong...
 As you can see in the expected implementation coroutine result type is an `async<T>` where the type of the `task.result()` is a `std::expected<T, async_error>`. 
 
 - In the successful case, the resulting value will be wrapped into the `std::expected` value member
-- But if some uncaught exception is thrown, then the error member of std::excpected will store the `async_error`.
+- But if some uncaught exception is thrown, then the error member of `std::expected` will store the `async_error`.
 
 So, all uncaught exceptions that happen inside a coroutine are caught in the background and transformed into the `async_error`.
 
@@ -469,10 +469,10 @@ N9coasyncpp11async_errorE : Unknown error.
 St13runtime_error : Something went wrong...
 ```
 
-IIn the variant implementation coroutine result type is an `async<T, E1, E2, ...>` where the type of the `task.result()` is a `std::expected<T, std::variant<E1, E2, ...>>`. `E1, E2, ...` are the types of errors that can happen via coroutine call. 
+In the variant implementation coroutine result type is an `async<T, E1, E2, ...>` where the type of the `task.result()` is a `std::expected<T, std::variant<E1, E2, ...>>`. `E1, E2, ...` are the types of errors that can happen via coroutine call. 
 
 - In the successful case, the resulting value will be wrapped into the `std::expected` value member
-- If any uncaught exception is thrown (inherited from std::exception or not), then the error member of std::excpected will store the `std::variant<E1, E2, ...>` with `async_error`
-- If you want to put some typed error different from the `async_error`, then you need to catch an exception in the coroutine code and return it via std::unexpected.
+- If any uncaught exception is thrown (inherited from `std::exception` or not), then the error member of `std::expected` will store the `std::variant<E1, E2, ...>` with `async_error`
+- If you want to put some typed error different from the `async_error`, then you need to catch an exception in the coroutine code and return it via std::unexpected. In this case the error member of `std::expected` will store the `std::variant<E1, E2, ...>` with an error of any type from the `E1, E2, ...` set;
 
-So, all uncaught exceptions inside a coroutine are caught in the background and transformed into the `async_error`. If you want the coroutine to return the original exeception just catch it and return it via std::unexpected.
+So, all uncaught exceptions inside a coroutine are caught in the background and transformed into the `async_error`. If you want the coroutine to return the original or any custom exeception just catch it and return it via std::unexpected.
