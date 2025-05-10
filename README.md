@@ -413,7 +413,7 @@ auto coWithUnsupportedError() -> async<int, std::runtime_error, async_error>
 	co_return 84;
 }
 
-auto runCo(async<int, std::runtime_error, async_error> &&task) -> void
+auto runTask(async<int, std::runtime_error, async_error> &&task) -> void
 {
     task.execute();
     auto result = task.result();
@@ -434,9 +434,9 @@ auto runCo(async<int, std::runtime_error, async_error> &&task) -> void
 
 auto main(int argc, char *argv[]) -> int
 {
-    runCo(coWithSuccess());
-    runCo(coWithRuntimeError());
-    runCo(coWithUnsupportedError());
+    runTask(coWithSuccess());
+    runTask(coWithRuntimeError());
+    runTask(coWithUnsupportedError());
 }
 ```
 
