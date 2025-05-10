@@ -1,5 +1,5 @@
 # Coroutine based async tasks C++ library
-![Coroutine based async tasks C++ library](https://github.com/rostislav-nikitin/coasyncpp/blob/main/logo-6.png?raw=true)
+![Coroutine based async tasks C++ library](https://github.com/rostislav-nikitin/coasyncpp/blob/main/logo.png?raw=true)
 
 ## About
 As you may know the coroutines support is one of the big four features added to the C++20. Coroutines provides to the developer base mechanisms and abstractions to implement a coperative multitasking.
