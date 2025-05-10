@@ -424,7 +424,7 @@ auto coWithCaughtRuntimeError() -> async<int, std::runtime_error, async_error>
     try
     {
         throw std::runtime_error("Something went wrong...");
-	    co_return 42;
+        co_return 42;
     }
     catch(const std::runtime_error& e)
     {
@@ -446,8 +446,8 @@ auto runTask(async<int, std::runtime_error, async_error> &&task) -> void
             return x;
         })
         .or_else([](auto vex) -> result_t {
-            std::visit([](auto &&ex) { std::cout << typeid(ex).name() << " : " << ex.what() << std::endl; }, vex);
-
+            std::visit([](auto &&ex) { 
+                std::cout << typeid(ex).name() << " : " << ex.what() << std::endl; }, vex);
             return std::unexpected(vex);
         });
 }
