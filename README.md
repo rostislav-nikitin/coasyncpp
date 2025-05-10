@@ -293,6 +293,8 @@ Let's look at the next example:
 ```C++
 #include <coasyncpp/async.hpp>
 
+#include <iostream>
+
 using namespace coasyncpp::core;
 
 auto co() -> async<int>
@@ -300,7 +302,7 @@ auto co() -> async<int>
     co_return 42;
 }
 
-auto main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
     async<int> task = co();
     task.execute();
@@ -328,26 +330,28 @@ Let's look at the next example:
 
 #include <stdexcept>
 #include <expected>
+#include <iostream>
 
 using namespace coasyncpp::expected;
 
-auto coWithSuccess() -> async<int, async_error>
+auto coWithSuccess() -> async<int>
 {
     co_return 42;
 }
 
-auto coWithError() -> async<int, async_error>
+auto coWithError() -> async<int>
 {
     throw std::runtime_error("Something went wrong...");
+	co_return 42;
 }
 
-auto main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
     // Success case
     async<int> taskWithSuccess = coWithSuccess();
     taskWithSuccess.execute();
 
-    async<int> resultWithSuccess = taskWithSuccess.result();
+    std::expected<int, async_error> resultWithSuccess = taskWithSuccess.result();
 
     if(resultWithSuccess.has_value())
         std::cout << resultWithSuccess.value() << std::endl;
@@ -358,7 +362,7 @@ auto main(int argc, char *argv[])
     async<int> taskWithError = coWithError();
     taskWithError.execute();
 
-    async<int> resultWithError = taskWithError.result();
+    std::expected<int, async_error> resultWithError = taskWithError.result();
 
     if(resultWithError.has_value())
         std::cout << resultWithError.value() << std::endl;
@@ -388,6 +392,7 @@ Let's look at the next example:
 #include <stdexcept>
 #include <expected>
 #include <variant>
+#include <iostream>
 
 using namespace coasyncpp::variant;
 
@@ -399,16 +404,18 @@ auto coWithSuccess() -> async<int, std::runtime_error, async_error>
 auto coWithRuntimeError() -> async<int, std::runtime_error, async_error>
 {
     throw std::runtime_error("Something went wrong...");
+	co_return 42;
 }
 
 auto coWithUnsupportedError() -> async<int, std::runtime_error, async_error>
 {
     throw 84;
+	co_return 84;
 }
 
-void runCo(auto &&co)
+auto runCo(async<int, std::runtime_error, async_error> &&task) -> void
 {
-    auto task = co.execute();
+    task.execute();
     auto result = task.result();
 
     using result_t = expected_result_t<int, std::runtime_error, async_error>;
@@ -425,7 +432,7 @@ void runCo(auto &&co)
         });
 }
 
-auto main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
     runCo(coWithSuccess());
     runCo(coWithRuntimeError());

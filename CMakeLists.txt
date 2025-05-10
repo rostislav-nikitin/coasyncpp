@@ -5,6 +5,21 @@ project(coasyncpp)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_executable(core_call
+    examples/core_call.cpp
+)
+target_include_directories(core_call PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
+add_executable(expected_call
+    examples/expected_call.cpp
+)
+target_include_directories(expected_call PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
+add_executable(variant_call
+    examples/variant_call.cpp
+)
+target_include_directories(variant_call PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
 add_executable(fib
     examples/fib.cpp
 )
