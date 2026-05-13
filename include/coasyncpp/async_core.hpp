@@ -17,6 +17,42 @@ using namespace coasyncpp;
 
 template <typename T> class async;
 
+template <typename T> class async_iterator;
+
+template <typename T> bool operator==(async_iterator<T> const &lh, async_iterator<T> const &rh)
+{
+    return lh.value() == rh.value();
+}
+template <typename T> bool operator!=(async_iterator<T> const &lh, async_iterator<T> const &rh)
+{
+    return !(lh == rh);
+}
+bool operator==(async_sentinel const &lh, async_sentinel const &rh)
+{
+    return true;
+}
+bool operator!=(async_sentinel const &lh, async_sentinel const &rh)
+{
+    return !(lh == rh);
+}
+
+template <typename T> bool operator==(async_iterator<T> const &i, async_sentinel const &s)
+{
+    return i.done();
+}
+template <typename T> bool operator!=(async_iterator<T> const &i, async_sentinel const &s)
+{
+    return !(i == s);
+}
+template <typename T> bool operator==(async_sentinel const &s, async_iterator<T> const &i)
+{
+    return i == s;
+}
+template <typename T> bool operator!=(async_sentinel const &s, async_iterator<T> const &i)
+{
+    return !(s == i);
+}
+
 /// @brief The class that represents iterator for async task.
 /// @tparam T The type of the iterator value.
 template <typename T> class async_iterator
@@ -56,51 +92,17 @@ template <typename T> class async_iterator
         return task_->done();
     }
 
-    friend bool operator==<T>(async_iterator const &lh, async_iterator const &rh);
-    friend bool operator!=<T>(async_iterator const &lh, async_iterator const &rh);
-    friend bool operator==<T>(async_iterator const &i, async_sentinel const &s);
-    friend bool operator!=<T>(async_iterator const &i, async_sentinel const &s);
-    friend bool operator==<T>(async_sentinel const &s, async_iterator const &i);
-    friend bool operator!=<T>(async_sentinel const &s, async_iterator const &i);
+    friend bool operator== <T>(async_iterator const &lh, async_iterator const &rh);
+    friend bool operator!= <T>(async_iterator const &lh, async_iterator const &rh);
+    friend bool operator== <T>(async_iterator const &i, async_sentinel const &s);
+    friend bool operator!= <T>(async_iterator const &i, async_sentinel const &s);
+    friend bool operator== <T>(async_sentinel const &s, async_iterator const &i);
+    friend bool operator!= <T>(async_sentinel const &s, async_iterator const &i);
 
   private:
     async<T> *task_{};
     mutable bool nextDone_{};
 };
-
-template <typename T> bool operator==(async_iterator<T> const &lh, async_iterator<T> const &rh)
-{
-    return lh.value() == rh.value();
-}
-template <typename T> bool operator!=(async_iterator<T> const &lh, async_iterator<T> const &rh)
-{
-    return !(lh == rh);
-}
-bool operator==(async_sentinel const &lh, async_sentinel const &rh)
-{
-    return true;
-}
-bool operator!=(async_sentinel const &lh, async_sentinel const &rh)
-{
-    return !(lh == rh);
-}
-
-template <typename T> bool operator==(async_iterator<T> const &i, async_sentinel const &s)
-{
-    return i.done();
-}
-template <typename T> bool operator!=(async_iterator<T> const &i, async_sentinel const &s)
-{
-    return !(i == s);
-}
-template <typename T> bool operator==(async_sentinel const &s, async_iterator<T> const &i)
-{
-    return i == s;
-}
-template <typename T> bool operator!=(async_sentinel const &s, async_iterator<T> const &i)
-{
-    return !(s == i);
-}
 
 /// @brief The class that represents async task.
 /// @tparam T The type of the async task value.
@@ -160,13 +162,12 @@ template <typename T> class async : public async_interface
     }
 
     // Members
-    async(std::coroutine_handle<promise_type> selfHandle) :
-        selfHandle_{new std::coroutine_handle<promise_type>{selfHandle},
-        [](std::coroutine_handle<promise_type> *handlePtr)
-        {
-            handlePtr->destroy();
-            delete handlePtr;
-        }}
+    async(std::coroutine_handle<promise_type> selfHandle)
+        : selfHandle_{
+              new std::coroutine_handle<promise_type>{selfHandle}, [](std::coroutine_handle<promise_type> *handlePtr) {
+                  handlePtr->destroy();
+                  delete handlePtr;
+              }}
 
     {
     }
@@ -255,16 +256,14 @@ template <> class async<void> : public async_interface
     }
 
     // Members
-    async(std::coroutine_handle<promise_type> selfHandle) : 
-        selfHandle_{new std::coroutine_handle<promise_type>{selfHandle},
-        [](std::coroutine_handle<promise_type> *handlePtr)
-        {
-            handlePtr->destroy();
-            delete handlePtr;
-        }}
+    async(std::coroutine_handle<promise_type> selfHandle)
+        : selfHandle_{
+              new std::coroutine_handle<promise_type>{selfHandle}, [](std::coroutine_handle<promise_type> *handlePtr) {
+                  handlePtr->destroy();
+                  delete handlePtr;
+              }}
     {
     }
-
 
     void execute() override
     {
