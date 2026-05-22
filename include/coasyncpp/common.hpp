@@ -13,14 +13,24 @@ class async_interface
   public:
     virtual void execute() = 0;
     virtual bool done() = 0;
-    virtual ~async_interface() { }
+    virtual ~async_interface()
+    {
+    }
 };
 
 /// @brief The class that represents an aync error.
 class async_error : public std::runtime_error
 {
   public:
+    async_error(std::string const &msg) : async_error(0, msg)
+    {
+    }
+
     async_error(char const *msg) : async_error(0, msg)
+    {
+    }
+
+    async_error(int code, std::string const &msg) : code_{code}, runtime_error(msg)
     {
     }
 
@@ -56,10 +66,10 @@ template <typename T> class resume_awaiter
     }
     std::coroutine_handle<> await_suspend(std::coroutine_handle<T> selfHandle) noexcept
     {
-        if(isFromStackCall_)
-          return std::noop_coroutine();
+        if (isFromStackCall_)
+            return std::noop_coroutine();
         else
-          return selfHandle.promise().callerHandle_;
+            return selfHandle.promise().callerHandle_;
     }
     void await_resume() noexcept
     {
@@ -71,7 +81,7 @@ template <typename T> class resume_awaiter
 
 void coroutineHandleDestroyer(std::coroutine_handle<> handle)
 {
-  handle.destroy();
+    handle.destroy();
 }
 } // namespace coasyncpp
 

@@ -133,12 +133,12 @@ template <typename T> class async : public async_interface
         }
         std::suspend_always return_value(expected_value_type<T> value)
         {
-            value_ = value;
+            value_ = std::move(value);
             return {};
         }
         std::suspend_always yield_value(expected_value_type<T> value)
         {
-            value_ = value;
+            value_ = std::move(value);
             return {};
         }
         // void return_void() { isDone_ = true; }
@@ -310,8 +310,9 @@ template <> class async<void> : public async_interface
         selfHandle_->promise().isFromStackCall_ = false;
         selfHandle_->resume();
     }
-    void await_resume()
+    expected_value_type<void> await_resume()
     {
+        return selfHandle_->promise().value_;
     }
 
     // Members
