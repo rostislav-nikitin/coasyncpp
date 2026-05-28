@@ -150,11 +150,12 @@ template <typename T> class async : public async_interface
     {
         return false;
     }
-    void await_suspend(std::coroutine_handle<> callerHandle)
+    auto await_suspend(std::coroutine_handle<> callerHandle)
     {
         selfHandle_->promise().callerHandle_ = callerHandle;
         selfHandle_->promise().isFromStackCall_ = false;
-        selfHandle_->resume();
+        // selfHandle_->resume();
+        return *selfHandle_;
     }
     T await_resume()
     {
@@ -245,11 +246,12 @@ template <> class async<void> : public async_interface
     {
         return false;
     }
-    void await_suspend(std::coroutine_handle<> callerHandle)
+    auto await_suspend(std::coroutine_handle<> callerHandle)
     {
         selfHandle_->promise().callerHandle_ = callerHandle;
         selfHandle_->promise().isFromStackCall_ = false;
-        selfHandle_->resume();
+        // selfHandle_->resume();
+        return *selfHandle_;
     }
     void await_resume()
     {

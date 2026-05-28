@@ -65,23 +65,25 @@ template <typename T, typename... Es> class async_iterator
         return task_->done();
     }
 
-    friend bool operator==<T, Es...>(async_iterator const &lh, async_iterator const &rh);
-    friend bool operator!=<T, Es...>(async_iterator const &lh, async_iterator const &rh);
-    friend bool operator==<T, Es...>(async_iterator const &i, async_sentinel const &s);
-    friend bool operator!=<T, Es...>(async_iterator const &i, async_sentinel const &s);
-    friend bool operator==<T, Es...>(async_sentinel const &s, async_iterator const &i);
-    friend bool operator!=<T, Es...>(async_sentinel const &s, async_iterator const &i);
+    friend bool operator== <T, Es...>(async_iterator const &lh, async_iterator const &rh);
+    friend bool operator!= <T, Es...>(async_iterator const &lh, async_iterator const &rh);
+    friend bool operator== <T, Es...>(async_iterator const &i, async_sentinel const &s);
+    friend bool operator!= <T, Es...>(async_iterator const &i, async_sentinel const &s);
+    friend bool operator== <T, Es...>(async_sentinel const &s, async_iterator const &i);
+    friend bool operator!= <T, Es...>(async_sentinel const &s, async_iterator const &i);
 
   private:
     async<T, Es...> *task_{};
     mutable bool nextDone_{};
 };
 
-template <typename T, typename... Es> bool operator==(async_iterator<T, Es...> const &lh, async_iterator<T, Es...> const &rh)
+template <typename T, typename... Es>
+bool operator==(async_iterator<T, Es...> const &lh, async_iterator<T, Es...> const &rh)
 {
     return lh.value() == rh.value();
 }
-template <typename T, typename... Es> bool operator!=(async_iterator<T, Es...> const &lh, async_iterator<T, Es...> const &rh)
+template <typename T, typename... Es>
+bool operator!=(async_iterator<T, Es...> const &lh, async_iterator<T, Es...> const &rh)
 {
     return !(lh == rh);
 }
@@ -151,7 +153,7 @@ template <typename T, typename... Es> class async : public async_interface
                 }
                 catch (const std::exception &rex)
                 {
-                    //value_ = std::unexpected(std::variant<Es...>{rex});
+                    // value_ = std::unexpected(std::variant<Es...>{rex});
                     value_ = std::unexpected(std::variant<Es...>(async_error(rex.what())));
                 }
                 /*
@@ -170,7 +172,6 @@ template <typename T, typename... Es> class async : public async_interface
             return async<T, Es...>(std::coroutine_handle<promise_type>::from_promise(*this));
         }
 
-
         expected_result_t<T, Es...> value_{};
         std::coroutine_handle<> callerHandle_{};
         bool isFromStackCall_{true};
@@ -182,11 +183,12 @@ template <typename T, typename... Es> class async : public async_interface
     {
         return false;
     }
-    void await_suspend(std::coroutine_handle<> callerHandle)
+    auto await_suspend(std::coroutine_handle<> callerHandle)
     {
         selfHandle_->promise().callerHandle_ = callerHandle;
         selfHandle_->promise().isFromStackCall_ = false;
-        selfHandle_->resume();
+        // selfHandle_->resume();
+        return *selfHandle_;
     }
     expected_result_t<T, Es...> await_resume()
     {
@@ -194,16 +196,12 @@ template <typename T, typename... Es> class async : public async_interface
     }
 
     // Members
-    async(std::coroutine_handle<promise_type> selfHandle) :
-        selfHandle_
-        {
-            new std::coroutine_handle<promise_type>{selfHandle},
-            [](std::coroutine_handle<promise_type> *handlePtr)
-            {
-                handlePtr->destroy();
-                delete handlePtr;
-            }
-        }
+    async(std::coroutine_handle<promise_type> selfHandle)
+        : selfHandle_{
+              new std::coroutine_handle<promise_type>{selfHandle}, [](std::coroutine_handle<promise_type> *handlePtr) {
+                  handlePtr->destroy();
+                  delete handlePtr;
+              }}
     {
     }
 
@@ -276,7 +274,7 @@ template <typename... Es> class async<void, Es...> : public async_interface
                 }
                 catch (const std::exception &e)
                 {
-                    //value_ = std::unexpected(async_error(e.what()));
+                    // value_ = std::unexpected(async_error(e.what()));
                     value_ = std::unexpected(std::variant<Es...>(e));
                 }
                 catch (...)
@@ -301,27 +299,24 @@ template <typename... Es> class async<void, Es...> : public async_interface
     {
         return false;
     }
-    void await_suspend(std::coroutine_handle<> callerHandle)
+    auto await_suspend(std::coroutine_handle<> callerHandle)
     {
         selfHandle_->promise().callerHandle_ = callerHandle;
         selfHandle_->promise().isFromStackCall_ = false;
-        selfHandle_->resume();
+        // selfHandle_->resume();
+        return *selfHandle_;
     }
     void await_resume()
     {
     }
 
     // Members
-    async(std::coroutine_handle<promise_type> selfHandle) :
-        selfHandle_
-        {
-            new std::coroutine_handle<promise_type>{selfHandle},
-            [](std::coroutine_handle<promise_type> *handlePtr)
-            {
-                handlePtr->destroy();
-                delete handlePtr;
-            }
-        }
+    async(std::coroutine_handle<promise_type> selfHandle)
+        : selfHandle_{
+              new std::coroutine_handle<promise_type>{selfHandle}, [](std::coroutine_handle<promise_type> *handlePtr) {
+                  handlePtr->destroy();
+                  delete handlePtr;
+              }}
     {
     }
 
@@ -381,7 +376,7 @@ template <typename T, typename... Es> async<void, Es...> whenAny(std::vector<asy
         }
     }
 }
-} // namespace expected
+} // namespace variant
 } // namespace coasyncpp
 
 #endif

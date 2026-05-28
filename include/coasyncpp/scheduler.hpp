@@ -118,14 +118,14 @@ template <typename T> struct awake_handle
         return result_;
     }
 
-/*
-    T value_{};
+    /*
+        T value_{};
 
-    T getValue() const
-    {
-        return value_;
-    }
-*/
+        T getValue() const
+        {
+            return value_;
+        }
+    */
 };
 template <> struct awake_handle<void>
 {
@@ -166,7 +166,7 @@ template <> void suspend(awake_handle<void> *handle)
 // Resume from callback
 template <typename T> void resume(T value, awake_handle<T> *handle)
 {
-    handle->result_ = value;
+    handle->result_ = std::move(value);
     std::lock_guard lock(handle->mt_);
     handle->cv_.notify_one();
     handle->completed_ = true;
