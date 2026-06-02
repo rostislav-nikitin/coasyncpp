@@ -3,7 +3,6 @@
 
 #include <coroutine>
 #include <stdexcept>
-#include <cstring>
 
 namespace coasyncpp
 {
@@ -79,7 +78,7 @@ template <typename T> class resume_awaiter
     bool isFromStackCall_{};
 };
 
-void coroutineHandleDestroyer(std::coroutine_handle<> handle)
+inline void coroutineHandleDestroyer(std::coroutine_handle<> handle)
 {
     handle.destroy();
 }

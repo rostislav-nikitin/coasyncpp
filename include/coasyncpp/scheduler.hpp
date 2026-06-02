@@ -26,6 +26,8 @@ class Scheduler
   public:
     static Scheduler *getInstance()
     {
+        static Scheduler *instance_;
+
         if (nullptr == instance_)
             instance_ = new Scheduler();
 
@@ -57,8 +59,6 @@ class Scheduler
     }
 
   private:
-    static Scheduler *instance_;
-
     Scheduler()
     {
         isRunning_ = true;
@@ -102,8 +102,6 @@ class Scheduler
     }
 };
 
-Scheduler *Scheduler::instance_{};
-
 // Tasks with callback support
 template <typename T> struct awake_handle
 {
@@ -146,7 +144,7 @@ template <typename T> awake_handle<T> *createTaskHandle()
 {
     return new awake_handle<T>{};
 }
-template <> awake_handle<void> *createTaskHandle()
+template <> inline awake_handle<void> *createTaskHandle()
 {
     return new awake_handle<void>{};
 }
@@ -157,7 +155,7 @@ template <typename T> void suspend(awake_handle<T> *handle)
     std::unique_lock lock{handle->mt_};
     handle->cv_.wait(lock, [handle]() { return handle->completed_; });
 }
-template <> void suspend(awake_handle<void> *handle)
+template <> inline void suspend(awake_handle<void> *handle)
 {
     std::unique_lock lock{handle->mt_};
     handle->cv_.wait(lock, [handle]() { return handle->completed_; });
@@ -180,13 +178,13 @@ template <typename T> void resume(int errorCode, char const *errorMessage, awake
     handle->completed_ = true;
 }
 
-void resume(awake_handle<void> *handle)
+inline void resume(awake_handle<void> *handle)
 {
     std::lock_guard lock(handle->mt_);
     handle->cv_.notify_one();
     handle->completed_ = true;
 }
-void resume(int errorCode, char const *errorMessage, awake_handle<void> *handle)
+inline void resume(int errorCode, char const *errorMessage, awake_handle<void> *handle)
 {
     handle->result_ = std::unexpected(async_error{errorCode, errorMessage});
     std::lock_guard lock(handle->mt_);

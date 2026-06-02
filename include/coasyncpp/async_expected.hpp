@@ -37,11 +37,11 @@ template <typename T> bool operator!=(async_iterator<T> const &lh, async_iterato
     return !(lh == rh);
 }
 
-bool operator==(async_sentinel const &lh, async_sentinel const &rh)
+inline bool operator==(async_sentinel const &lh, async_sentinel const &rh)
 {
     return true;
 }
-bool operator!=(async_sentinel const &lh, async_sentinel const &rh)
+inline bool operator!=(async_sentinel const &lh, async_sentinel const &rh)
 {
     return !(lh == rh);
 }
